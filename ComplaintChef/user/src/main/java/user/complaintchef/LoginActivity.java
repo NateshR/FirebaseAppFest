@@ -15,7 +15,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import user.complaintchef.core.MyApplication;
-import user.complaintchef.firebase.FirebaseConfig;
+import common.complaintcheflib.firebase.FirebaseConfig;
 
 /**
  * Created by Simar Arora on 21/06/17.

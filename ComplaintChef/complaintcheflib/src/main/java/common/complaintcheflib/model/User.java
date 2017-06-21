@@ -2,6 +2,8 @@ package common.complaintcheflib.model;
 
 import com.google.firebase.database.PropertyName;
 
+import java.util.List;
+
 /**
  * Created by nateshrelhan on 6/21/17.
  */
@@ -11,6 +13,12 @@ public class User {
     public String latitude;
     @PropertyName("longitude")
     public String longitude;
+    @PropertyName("pending")
+    public List<Integer> pendingList;
+    @PropertyName("accepted")
+    public List<Integer> acceptedList;
+    @PropertyName("declined")
+    public List<Integer> declinedList;
 
 
     public User() {
@@ -35,5 +43,29 @@ public class User {
 
     public void setLongitude(String longitude) {
         this.longitude = longitude;
+    }
+
+    public List<Integer> getPendingList() {
+        return pendingList;
+    }
+
+    public void setPendingList(List<Integer> pendingList) {
+        this.pendingList = pendingList;
+    }
+
+    public List<Integer> getAcceptedList() {
+        return acceptedList;
+    }
+
+    public void setAcceptedList(List<Integer> acceptedList) {
+        this.acceptedList = acceptedList;
+    }
+
+    public List<Integer> getDeclinedList() {
+        return declinedList;
+    }
+
+    public void setDeclinedList(List<Integer> declinedList) {
+        this.declinedList = declinedList;
     }
 }

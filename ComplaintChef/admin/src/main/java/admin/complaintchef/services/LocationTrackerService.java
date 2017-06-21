@@ -27,7 +27,6 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import common.complaintcheflib.model.User;
 import common.complaintcheflib.util.LocationUtils;
-import common.complaintcheflib.util.Sessions;
 
 /**
  * Created by Simar Arora on 21/06/17.
@@ -114,7 +113,7 @@ public class LocationTrackerService extends Service implements OnCompleteListene
     private DatabaseReference getmDatabaseReference() {
 
         if (mDatabaseReference == null) {
-            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(Sessions.loadUsername(this));
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users").child("simar");
             mDatabaseReference.keepSynced(true);
         }
         return mDatabaseReference;

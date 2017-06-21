@@ -1,4 +1,4 @@
-package user.complaintchef.firebase;
+package common.complaintcheflib.firebase;
 
 import android.content.Context;
 import android.database.Observable;
@@ -29,7 +29,7 @@ public class FirebaseConfig {
     }
 
     /**
-     * @return {@link Observable} of firebase auth listener.
+     * @return {@link Observable} of common.complaintcheflib.firebase auth listener.
      */
     public void firebaseSignInStatusListenerObservable() {
         Log.d(TAG, TAG + " init auth");
@@ -51,7 +51,7 @@ public class FirebaseConfig {
     }
 
     /**
-     * start firebase auth
+     * start common.complaintcheflib.firebase auth
      */
     public void startAuthState() {
         if (mAuth != null && mAuthListener != null) {
@@ -61,7 +61,7 @@ public class FirebaseConfig {
     }
 
     /**
-     * stop firebase auth
+     * stop common.complaintcheflib.firebase auth
      */
     public void stopAuthState() {
         if (mAuthListener != null && mAuth != null) {
@@ -71,7 +71,7 @@ public class FirebaseConfig {
     }
 
     /**
-     * @param token used in signing in to firebase
+     * @param token used in signing in to common.complaintcheflib.firebase
      */
     public void startSignInWithToken(String token) {
         if (token != null && !token.isEmpty()) {
