@@ -39,8 +39,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import user.complaintchef.core.MyApplication;
+import common.complaintcheflib.net.APIService;
 import user.complaintchef.firebase.FirebaseDataStoreFactory;
-import user.complaintchef.net.APIService;
 
 /**
  * Created by nateshrelhan on 6/21/17.
@@ -190,7 +190,7 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
                 Tracker tracker = trackerWeakReference.get();
                 Bundle receivedBundle = msg.getData();
                 LatLng userLatLng = null, officerLatLng = null;
-                if (receivedBundle.getDouble("user_lat") != 0.0d && receivedBundle.get("user_long") != 0.0d)
+                if (receivedBundle.getDouble("user_lat") != 0.0d && receivedBundle.getDouble("user_long") != 0.0d)
                     userLatLng = new LatLng(receivedBundle.getDouble("user_lat"), receivedBundle.getDouble("user_long"));
                 if (receivedBundle.getDouble("officer_lat") != 0.0d && receivedBundle.getDouble("officer_long") != 0.0d)
                     officerLatLng = new LatLng(receivedBundle.getDouble("officer_lat"), receivedBundle.getDouble("officer_long"));

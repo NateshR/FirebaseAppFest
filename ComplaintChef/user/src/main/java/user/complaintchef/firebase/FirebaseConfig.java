@@ -11,7 +11,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import user.complaintchef.core.Sessions;
+import common.complaintcheflib.util.Sessions;
 
 
 /**

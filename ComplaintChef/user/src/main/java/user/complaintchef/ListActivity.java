@@ -15,11 +15,9 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import common.complaintcheflib.model.Complaint;
 import common.complaintcheflib.util.BaseAppCompatActivity;
-import user.complaintchef.core.Sessions;
+import common.complaintcheflib.util.Sessions;
 import user.complaintchef.firebase.FirebaseDataStoreFactory;
 
 /**
@@ -29,7 +27,6 @@ import user.complaintchef.firebase.FirebaseDataStoreFactory;
 public class ListActivity extends BaseAppCompatActivity implements FirebaseDataStoreFactory.DataListCallBack<Complaint> {
     private static final String KEY_USER = "users", KEY_COMPLAINTS = "complaints";
     private static DatabaseReference mDatabaseReference;
-    @BindView(R.id.rv_list)
     RecyclerView recyclerView;
     FirebaseDataStoreFactory<Complaint> firebaseDataStoreFactory;
 
@@ -37,7 +34,7 @@ public class ListActivity extends BaseAppCompatActivity implements FirebaseDataS
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
-        ButterKnife.bind(this);
+        recyclerView = (RecyclerView) findViewById(R.id.rv_list);
         firebaseDataStoreFactory = new FirebaseDataStoreFactory<>();
         firebaseDataStoreFactory.dataList(FirebaseDataStoreFactory.ListenerType.NODE, Complaint.class, getmDatabaseReference(), this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -46,7 +43,7 @@ public class ListActivity extends BaseAppCompatActivity implements FirebaseDataS
 
     private DatabaseReference getmDatabaseReference() {
         if (mDatabaseReference == null) {
-            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(KEY_USER).child(Sessions.loadUserName(this)).child(KEY_COMPLAINTS);
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(KEY_USER).child(Sessions.loadUsername(ListActivity.this)).child(KEY_COMPLAINTS);
             mDatabaseReference.keepSynced(true);
         }
         return mDatabaseReference;
@@ -87,17 +84,18 @@ public class ListActivity extends BaseAppCompatActivity implements FirebaseDataS
 
         class ListHolder extends RecyclerView.ViewHolder {
 
-            @BindView(R.id.tv_category)
             TextView categoryTV;
-            @BindView(R.id.tv_details)
             TextView detailsTV;
-            @BindView(R.id.tv_status)
             TextView statusTV;
 
 
             ListHolder(View itemView) {
                 super(itemView);
-                ButterKnife.bind(this, itemView);
+
+                categoryTV = (TextView) itemView.findViewById(R.id.tv_category);
+                detailsTV = (TextView) itemView.findViewById(R.id.tv_details);
+                statusTV = (TextView) itemView.findViewById(R.id.tv_status);
+
                 itemView.setOnClickListener(new View.OnClickListener() {
 
                     @Override

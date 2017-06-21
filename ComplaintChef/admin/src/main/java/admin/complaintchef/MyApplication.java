@@ -1,10 +1,10 @@
-package user.complaintchef.core;
+package admin.complaintchef;
 
 import android.app.Application;
 
+import common.complaintcheflib.net.APIService;
 import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
-import common.complaintcheflib.net.APIService;
 
 /**
  * Created by Simar Arora on 21/06/17.
