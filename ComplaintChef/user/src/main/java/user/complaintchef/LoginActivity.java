@@ -1,14 +1,20 @@
 package user.complaintchef;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatButton;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import common.complaintcheflib.util.BaseAppCompatActivity;
+import common.complaintcheflib.util.Login;
+import common.complaintcheflib.util.Sessions;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import user.complaintchef.core.MyApplication;
 import user.complaintchef.firebase.FirebaseConfig;
 
 /**
@@ -17,11 +23,8 @@ import user.complaintchef.firebase.FirebaseConfig;
 
 public class LoginActivity extends BaseAppCompatActivity {
 
-    @BindView(R.id.et_name)
     EditText nameET;
-    @BindView(R.id.et_phone)
     EditText phoneET;
-    @BindView(R.id.b_login)
     AppCompatButton loginB;
     private FirebaseConfig firebaseConfig;
 
@@ -30,7 +33,9 @@ public class LoginActivity extends BaseAppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        ButterKnife.bind(this);
+        nameET = (EditText) findViewById(R.id.et_name);
+        phoneET = (EditText) findViewById(R.id.et_phone);
+        loginB = (AppCompatButton) findViewById(R.id.b_login);
         firebaseConfig = new FirebaseConfig(this);
         loginB.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -70,12 +75,26 @@ public class LoginActivity extends BaseAppCompatActivity {
         }
 
         if (validated) {
-            login();
+            login(name, phone);
         }
     }
 
-    private void login() {
+    private void login(String name, String phone) {
+        String username = Login.login(MyApplication.getAPIService(), name, phone, "0", null, new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                String token = response.body();
+                Sessions.setToken(LoginActivity.this, token);
+                startActivity(new Intent(LoginActivity.this, MainActivity.class));
 
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable throwable) {
+                Toast.makeText(LoginActivity.this, "Something Went Wrong!", Toast.LENGTH_SHORT).show();
+            }
+        });
+        Sessions.setUsername(this, username);
     }
 
     private void startSignInWithToken(String token) {

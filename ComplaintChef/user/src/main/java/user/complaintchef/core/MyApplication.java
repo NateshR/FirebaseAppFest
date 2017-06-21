@@ -2,6 +2,8 @@ package user.complaintchef.core;
 
 import android.app.Application;
 
+import com.google.firebase.FirebaseApp;
+
 import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 import common.complaintcheflib.net.APIService;
@@ -34,6 +36,7 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        FirebaseApp.initializeApp(this);
     }
 
 

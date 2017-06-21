@@ -31,3 +31,4 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile project(':complaintcheflib')
 }
+apply plugin: 'com.google.gms.google-services'
