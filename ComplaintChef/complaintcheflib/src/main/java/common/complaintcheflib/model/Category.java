@@ -8,21 +8,21 @@ import com.google.firebase.database.PropertyName;
 
 public class Category {
     @PropertyName("id")
-    private int categoryId;
+    private String categoryId;
 
     @PropertyName("name")
     private String categoryName;
 
-    public Category(int categoryId, String categoryName) {
+    public Category(String categoryId, String categoryName) {
         this.categoryId = categoryId;
         this.categoryName = categoryName;
     }
 
-    public int getCategoryId() {
+    public String getCategoryId() {
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId) {
+    public void setCategoryId(String categoryId) {
         this.categoryId = categoryId;
     }
 
