@@ -55,7 +55,7 @@ public class LocationUtils {
         fusedLocationProviderClient.getLastLocation().addOnSuccessListener(ThreadExecutor.get(), new OnSuccessListener<Location>() {
             @Override
             public void onSuccess(Location location) {
-                locationReceivedCallback.onLocationReceived(null);
+                locationReceivedCallback.onLocationReceived(location);
             }
         });
     }

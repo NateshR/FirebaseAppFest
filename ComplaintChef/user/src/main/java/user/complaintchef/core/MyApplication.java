@@ -2,11 +2,9 @@ package user.complaintchef.core;
 
 import android.app.Application;
 
-import com.google.firebase.FirebaseApp;
-
+import common.complaintcheflib.net.APIService;
 import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
-import common.complaintcheflib.net.APIService;
 
 /**
  * Created by Simar Arora on 21/06/17.
@@ -36,7 +34,6 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        FirebaseApp.initializeApp(this);
     }
 
 

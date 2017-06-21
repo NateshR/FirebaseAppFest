@@ -9,6 +9,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import admin.complaintchef.services.LocationTrackerService;
 import common.complaintcheflib.util.BaseAppCompatActivity;
 import common.complaintcheflib.util.Login;
 import common.complaintcheflib.util.Sessions;
@@ -33,6 +34,9 @@ public class LoginActivity extends BaseAppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        startService(new Intent(this, LocationTrackerService.class));
+
         nameET = (EditText) findViewById(R.id.et_name);
         phoneET = (EditText) findViewById(R.id.et_phone);
         loginB = (AppCompatButton) findViewById(R.id.b_login);

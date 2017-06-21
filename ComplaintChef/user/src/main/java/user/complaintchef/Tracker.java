@@ -46,7 +46,7 @@ import user.complaintchef.firebase.FirebaseDataStoreFactory;
  * Created by nateshrelhan on 6/21/17.
  */
 
-public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback, FirebaseDataStoreFactory.ChildCallBack<User> {
+public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback, FirebaseDataStoreFactory.DataCallBack<User> {
 
     private static final String KEY_USER = "users";
     private static final long TRIGGER_DELAY_IN_MS = 1000;
@@ -85,7 +85,7 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
         weakRefHandler = new WeakRefHandler(this);
         gotBundle = getIntent().getExtras();
         firebaseDataStoreFactory = new FirebaseDataStoreFactory<>();
-        firebaseDataStoreFactory.data(User.class, getmDatabaseReference(gotBundle.getString("admin_id")), this);
+        firebaseDataStoreFactory.data(FirebaseDataStoreFactory.ListenerType.NODE, User.class, getmDatabaseReference(gotBundle.getString("admin_id")), this);
         mapFragment.getMapAsync(this);
     }
 
@@ -147,28 +147,9 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onChildAdded(User child) {
-        gotBundle.putDouble("officer_lat", child.getLatitude());
-        gotBundle.putDouble("officer_long", child.getLongitude());
-        initiateHandler();
-    }
-
-    @Override
-    public void onChildChanged(User child) {
-        gotBundle.putDouble("officer_lat", child.getLatitude());
-        gotBundle.putDouble("officer_long", child.getLongitude());
-        initiateHandler();
-    }
-
-    @Override
-    public void onChildRemoved(User child) {
-        Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT);
-    }
-
-    @Override
-    public void onChildMoved(User child) {
-        gotBundle.putDouble("officer_lat", child.getLatitude());
-        gotBundle.putDouble("officer_long", child.getLongitude());
+    public void onDataChange(User dataList) {
+        gotBundle.putDouble("officer_lat", Double.parseDouble(dataList.getLatitude()));
+        gotBundle.putDouble("officer_long", Double.parseDouble(dataList.getLongitude()));
         initiateHandler();
     }
 
