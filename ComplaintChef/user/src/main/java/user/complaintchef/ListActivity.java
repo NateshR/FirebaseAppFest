@@ -1,6 +1,5 @@
 package user.complaintchef;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,7 +18,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import common.complaintcheflib.model.Complaint;
 import common.complaintcheflib.util.BaseAppCompatActivity;
-import user.complaintchef.core.Sessions;
+import common.complaintcheflib.util.Sessions;
 import user.complaintchef.firebase.FirebaseDataStoreFactory;
 
 /**
@@ -46,7 +45,7 @@ public class ListActivity extends BaseAppCompatActivity implements FirebaseDataS
 
     private DatabaseReference getmDatabaseReference() {
         if (mDatabaseReference == null) {
-            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(KEY_USER).child(Sessions.loadUserName(context)).child(KEY_COMPLAINTS);
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(KEY_USER).child(Sessions.loadUsername(ListActivity.this)).child(KEY_COMPLAINTS);
             mDatabaseReference.keepSynced(true);
         }
         return mDatabaseReference;
@@ -103,10 +102,10 @@ public class ListActivity extends BaseAppCompatActivity implements FirebaseDataS
                     @Override
                     public void onClick(View v) {
                         if (getAdapterPosition() == -1) return;
-                        Complaint complaint = ListAdapter.this.complaintList.get(getAdapterPosition());
-                        Intent intent = new Intent(ListActivity.this,Tracker.class);
-                        intent.putExtra("admin_id",complaint.getAdminId());
-                        intent.putExtra("")
+//                        Complaint complaint = ListAdapter.this.complaintList.get(getAdapterPosition());
+//                        Intent intent = new Intent(ListActivity.this,Tracker.class);
+//                        intent.putExtra("admin_id",complaint.getAdminId());
+//                        intent.putExtra("")
                     }
                 });
             }

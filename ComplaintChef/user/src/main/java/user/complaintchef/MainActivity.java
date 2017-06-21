@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class MainActivity extends BaseAppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
-        recyclerView.setAdapter(new CategoryAdapter(null));
+        recyclerView.setAdapter(new CategoryAdapter());
     }
 
     @Override
@@ -62,8 +63,11 @@ public class MainActivity extends BaseAppCompatActivity {
         private List<Category> categoryList;
         Map<Integer, Integer> iconsMap = new HashMap<>();
 
-        public CategoryAdapter(List<Category> categoryList) {
-            this.categoryList = categoryList;
+        public CategoryAdapter() {
+            this.categoryList = new ArrayList<>();
+            this.categoryList.add(new Category(1, "Electricity"));
+            this.categoryList.add(new Category(2, "Water"));
+            this.categoryList.add(new Category(3, "Infrastructure"));
             iconsMap.put(1, R.drawable.ic_electrivity);
             iconsMap.put(2, R.drawable.ic_water);
             iconsMap.put(3, R.drawable.ic_infra);

@@ -35,7 +35,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import user.complaintchef.core.MyApplication;
-import user.complaintchef.net.APIService;
+import common.complaintcheflib.net.APIService;
 
 /**
  * Created by nateshrelhan on 6/21/17.
