@@ -1,8 +1,14 @@
 package user.complaintchef;
 
-import android.graphics.Color;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -41,6 +47,20 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
 
     private APIService apiService;
 
+    public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
+        Drawable drawable = ContextCompat.getDrawable(context, drawableId);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            drawable = (DrawableCompat.wrap(drawable)).mutate();
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),
+                drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
+    }
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,8 +76,8 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
         myMap = googleMap;
         final LatLng user = new LatLng(28.621899, 77.087838);
         final LatLng officer = new LatLng(22.244197, 68.968456);
-        BitmapDescriptor userIcon = BitmapDescriptorFactory.fromResource(R.drawable.ic_location_pointer);
-        BitmapDescriptor officerIcon = BitmapDescriptorFactory.fromResource(R.drawable.ic_location_pointer);
+        BitmapDescriptor userIcon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(this, R.drawable.ic_user));
+        BitmapDescriptor officerIcon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(this, R.drawable.ic_location_pointer));
         MarkerOptions userMarker = new MarkerOptions().position(user)
                 .title("Complaint Location")
                 .icon(userIcon);
@@ -67,8 +87,8 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
         myMap.addMarker(officerMarker);
         myMap.addMarker(userMarker);
         myMap.animateCamera(CameraUpdateFactory.newLatLng(officer));
-        String origin = "origin=" + officer.latitude + "," + officer.longitude;
-        String destination = "destination=" + user.latitude + "," + user.longitude;
+        String origin = officer.latitude + "," + officer.longitude;
+        String destination = user.latitude + "," + user.longitude;
         String mode = "driving";
         Call<String> call = apiService.directionsApi(origin, destination, mode, getString(R.string.google_api_key));
         call.enqueue(new Callback<String>() {
@@ -83,7 +103,6 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
             }
         });
     }
-
 
     private class ParserTask implements Runnable {
         String result;
@@ -125,8 +144,8 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
                         }
 
                         lineOptions.addAll(points);
-                        lineOptions.width(12);
-                        lineOptions.color(Color.GRAY);
+                        lineOptions.width(8);
+                        lineOptions.color(ContextCompat.getColor(Tracker.this, R.color.colorAccent));
                         lineOptions.geodesic(true);
 
                     }
