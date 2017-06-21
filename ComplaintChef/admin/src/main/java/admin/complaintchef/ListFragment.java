@@ -16,6 +16,7 @@ import android.widget.Toast;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -35,6 +36,7 @@ public class ListFragment extends Fragment implements FirebaseDataStoreFactory.C
     RecyclerView recyclerView;
     FirebaseDataStoreFactory<User> firebaseDataStoreFactory;
     private int position;
+    ListAdapter listAdapter = new ListAdapter(null);
 
     public static ListFragment newInstance(int position) {
         ListFragment fragment = new ListFragment();
@@ -48,6 +50,7 @@ public class ListFragment extends Fragment implements FirebaseDataStoreFactory.C
         View view = inflater.inflate(R.layout.frgment_list, container, false);
         recyclerView = (RecyclerView) view.findViewById(R.id.rv_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        recyclerView.setAdapter(listAdapter);
         firebaseDataStoreFactory = new FirebaseDataStoreFactory<>();
         return view;
     }
@@ -55,7 +58,7 @@ public class ListFragment extends Fragment implements FirebaseDataStoreFactory.C
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        firebaseDataStoreFactory.data( User.class, getmDatabaseReference(), this);
+//        firebaseDataStoreFactory.data( User.class, getmDatabaseReference(), this);
 
     }
 
@@ -69,7 +72,56 @@ public class ListFragment extends Fragment implements FirebaseDataStoreFactory.C
 
     @Override
     public void onChildAdded(User child) {
-        
+
+        List<Integer> ids;
+        if (position == 0){
+            ids = child.getPendingList();
+        }else if (position == 1)
+            ids = child.getAcceptedList();
+        else ids =child.getDeclinedList();
+
+        final List<Complaint> complaints = new ArrayList<>();
+
+        for (Integer id : ids){
+            FirebaseDataStoreFactory<Complaint> firebaseDataStoreFactory = new FirebaseDataStoreFactory<>();
+            firebaseDataStoreFactory.data(Complaint.class, getComplainttReference(id), new FirebaseDataStoreFactory.ChildCallBack<Complaint>() {
+                @Override
+                public void onChildAdded(Complaint child) {
+                    complaints.add(child);
+                    listAdapter.refresh(complaints);
+
+                }
+
+                @Override
+                public void onChildChanged(Complaint child) {
+
+                }
+
+                @Override
+                public void onChildRemoved(Complaint child) {
+
+                }
+
+                @Override
+                public void onChildMoved(Complaint child) {
+
+                }
+
+                @Override
+                public void onCancelled() {
+
+                }
+            });
+        }
+    }
+
+    private DatabaseReference getComplainttReference(Integer id) {
+        DatabaseReference mDatabaseReference = null;
+        if (mDatabaseReference == null) {
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("complaints").child(String.valueOf(id));
+            mDatabaseReference.keepSynced(true);
+        }
+        return mDatabaseReference;
     }
 
     @Override
@@ -118,6 +170,11 @@ public class ListFragment extends Fragment implements FirebaseDataStoreFactory.C
         @Override
         public int getItemCount() {
             return complaintList == null ? 0 : complaintList.size();
+        }
+
+        public void refresh(List<Complaint> complaints) {
+            this.complaintList = complaints;
+            notifyDataSetChanged();
         }
 
         class ListHolder extends RecyclerView.ViewHolder implements View.OnClickListener {

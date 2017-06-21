@@ -114,7 +114,7 @@ public class LocationTrackerService extends Service implements OnCompleteListene
     private DatabaseReference getmDatabaseReference() {
 
         if (mDatabaseReference == null) {
-            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(Sessions.loadUsername(this));
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users").child("simar");
             mDatabaseReference.keepSynced(true);
         }
         return mDatabaseReference;
