@@ -21,6 +21,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import org.json.JSONObject;
 
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import common.complaintcheflib.model.User;
 import common.complaintcheflib.util.BaseAppCompatActivity;
 import common.complaintcheflib.util.ThreadExecutor;
 import retrofit2.Call;
@@ -36,22 +39,25 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import user.complaintchef.core.MyApplication;
 import common.complaintcheflib.net.APIService;
+import user.complaintchef.firebase.FirebaseDataStoreFactory;
 
 /**
  * Created by nateshrelhan on 6/21/17.
  */
 
-public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback {
+public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback, FirebaseDataStoreFactory.ChildCallBack {
 
+    private static final String KEY_USER = "users";
     private static final long TRIGGER_DELAY_IN_MS = 1000;
+    private static DatabaseReference mDatabaseReference;
     private static int TRIGGER_FETCH = 101;
     private SupportMapFragment mapFragment;
     private ThreadExecutor threadExecutor;
-    private Double officerLat, officerLong, userLat, userLong;
     private GoogleMap myMap;
     private APIService apiService;
     private WeakRefHandler weakRefHandler;
     private Bundle gotBundle;
+    private FirebaseDataStoreFactory<User> firebaseDataStoreFactory;
 
 
     public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
@@ -77,20 +83,20 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
         apiService = MyApplication.getAPIService();
         weakRefHandler = new WeakRefHandler(this);
         gotBundle = getIntent().getExtras();
-        if (gotBundle == null)
-            gotBundle = new Bundle();
+        firebaseDataStoreFactory = new FirebaseDataStoreFactory<>();
+//        firebaseDataStoreFactory.data(User.class, );
         mapFragment.getMapAsync(this);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         myMap = googleMap;
+        initiateHandler();
+    }
+
+    private void initiateHandler() {
         Message handlerMessage = new Message();
         handlerMessage.what = TRIGGER_FETCH;
-        gotBundle.putDouble("user_lat", 28.621899);
-        gotBundle.putDouble("user_long", 77.087838);
-        gotBundle.putDouble("officer_lat", 22.244197);
-        gotBundle.putDouble("officer_long", 68.968456);
         handlerMessage.setData(gotBundle);
         weakRefHandler.removeMessages(TRIGGER_FETCH);
         weakRefHandler.sendMessageDelayed(handlerMessage, TRIGGER_DELAY_IN_MS);
@@ -123,6 +129,39 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
 
             }
         });
+    }
+
+    @Override
+    public void onChildAdded(Object child) {
+
+    }
+
+    @Override
+    public void onChildChanged(Object child) {
+
+    }
+
+    @Override
+    public void onChildRemoved(Object child) {
+
+    }
+
+    @Override
+    public void onChildMoved(Object child) {
+
+    }
+
+    @Override
+    public void onCancelled() {
+
+    }
+
+    private DatabaseReference getmDatabaseReference(String id) {
+        if (mDatabaseReference == null) {
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(KEY_USER).child(id);
+            mDatabaseReference.keepSynced(true);
+        }
+        return mDatabaseReference;
     }
 
     private static final class WeakRefHandler extends Handler {

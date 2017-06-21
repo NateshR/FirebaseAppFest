@@ -1,5 +1,6 @@
 package user.complaintchef;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,8 +15,6 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import common.complaintcheflib.model.Complaint;
 import common.complaintcheflib.util.BaseAppCompatActivity;
 import common.complaintcheflib.util.Sessions;
@@ -28,7 +27,6 @@ import user.complaintchef.firebase.FirebaseDataStoreFactory;
 public class ListActivity extends BaseAppCompatActivity implements FirebaseDataStoreFactory.DataListCallBack<Complaint> {
     private static final String KEY_USER = "users", KEY_COMPLAINTS = "complaints";
     private static DatabaseReference mDatabaseReference;
-    @BindView(R.id.rv_list)
     RecyclerView recyclerView;
     FirebaseDataStoreFactory<Complaint> firebaseDataStoreFactory;
 
@@ -36,7 +34,7 @@ public class ListActivity extends BaseAppCompatActivity implements FirebaseDataS
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
-        ButterKnife.bind(this);
+        recyclerView = (RecyclerView) findViewById(R.id.rv_list);
         firebaseDataStoreFactory = new FirebaseDataStoreFactory<>();
         firebaseDataStoreFactory.dataList(FirebaseDataStoreFactory.ListenerType.NODE, Complaint.class, getmDatabaseReference(), this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -86,26 +84,29 @@ public class ListActivity extends BaseAppCompatActivity implements FirebaseDataS
 
         class ListHolder extends RecyclerView.ViewHolder {
 
-            @BindView(R.id.tv_category)
             TextView categoryTV;
-            @BindView(R.id.tv_details)
             TextView detailsTV;
-            @BindView(R.id.tv_status)
             TextView statusTV;
 
 
             ListHolder(View itemView) {
                 super(itemView);
-                ButterKnife.bind(this, itemView);
+
+                categoryTV = (TextView) itemView.findViewById(R.id.tv_category);
+                detailsTV = (TextView) itemView.findViewById(R.id.tv_details);
+                statusTV = (TextView) itemView.findViewById(R.id.tv_status);
+
                 itemView.setOnClickListener(new View.OnClickListener() {
 
                     @Override
                     public void onClick(View v) {
                         if (getAdapterPosition() == -1) return;
-//                        Complaint complaint = ListAdapter.this.complaintList.get(getAdapterPosition());
-//                        Intent intent = new Intent(ListActivity.this,Tracker.class);
-//                        intent.putExtra("admin_id",complaint.getAdminId());
-//                        intent.putExtra("")
+                        Complaint complaint = ListAdapter.this.complaintList.get(getAdapterPosition());
+                        Intent intent = new Intent(ListActivity.this, Tracker.class);
+                        intent.putExtra("admin_id", complaint.getAdminId());
+                        intent.putExtra("user_lat", complaint.getLatitude());
+                        intent.putExtra("user_long", complaint.getLongitude());
+                        startActivity(intent);
                     }
                 });
             }

@@ -9,8 +9,6 @@ import android.support.v7.widget.AppCompatButton;
 import android.view.View;
 import android.widget.EditText;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import common.complaintcheflib.model.Category;
 import common.complaintcheflib.util.LocationUtils;
 
@@ -20,11 +18,8 @@ import common.complaintcheflib.util.LocationUtils;
 
 public class ComplaintFormDialog extends Dialog {
 
-    @BindView(R.id.et_phone)
     EditText phoneET;
-    @BindView(R.id.et_details)
     EditText detailsET;
-    @BindView(R.id.b_submit)
     AppCompatButton submitB;
 
     private Category category;
@@ -32,8 +27,11 @@ public class ComplaintFormDialog extends Dialog {
 
     public ComplaintFormDialog(@NonNull Context context, Category category) {
         super(context);
+        setContentView(R.layout.activity_complaint_form);
         this.context = context;
-        ButterKnife.bind(this);
+        phoneET = (EditText) findViewById(R.id.et_phone);
+        detailsET = (EditText) findViewById(R.id.et_details);
+        submitB = (AppCompatButton) findViewById(R.id.b_submit);
         setCancelable(false);
         this.category = category;
         submitB.setOnClickListener(new View.OnClickListener() {
