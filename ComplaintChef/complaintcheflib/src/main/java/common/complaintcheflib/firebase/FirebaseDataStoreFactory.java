@@ -1,4 +1,4 @@
-package user.complaintchef.firebase;
+package common.complaintcheflib.firebase;
 
 import android.util.Log;
 
@@ -16,7 +16,7 @@ import java.util.List;
  */
 
 /**
- * @param <T> to attach firebase node/child/singleValue listener based on their type and example class
+ * @param <T> to attach common.complaintcheflib.firebase node/child/singleValue listener based on their type and example class
  */
 public class FirebaseDataStoreFactory<T> {
     private static final String TAG = FirebaseDataStoreFactory.class.getSimpleName();

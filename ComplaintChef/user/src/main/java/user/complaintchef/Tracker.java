@@ -40,7 +40,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import user.complaintchef.core.MyApplication;
 import common.complaintcheflib.net.APIService;
-import user.complaintchef.firebase.FirebaseDataStoreFactory;
+import common.complaintcheflib.firebase.FirebaseDataStoreFactory;
 
 /**
  * Created by nateshrelhan on 6/21/17.

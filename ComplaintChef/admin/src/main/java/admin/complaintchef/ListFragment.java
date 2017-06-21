@@ -11,22 +11,31 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import common.complaintcheflib.firebase.FirebaseDataStoreFactory;
 import common.complaintcheflib.model.Complaint;
+import common.complaintcheflib.model.User;
+import common.complaintcheflib.util.Sessions;
 
 /**
  * Created by Simar Arora on 21/06/17.
  */
 
-public class ListFragment extends Fragment {
+public class ListFragment extends Fragment implements FirebaseDataStoreFactory.ChildCallBack<User> {
 
-    private int position;
+    private static DatabaseReference mDatabaseReference;
     @BindView(R.id.rv_list)
     RecyclerView recyclerView;
+    FirebaseDataStoreFactory<User> firebaseDataStoreFactory;
+    private int position;
 
     public static ListFragment newInstance(int position) {
         ListFragment fragment = new ListFragment();
@@ -40,7 +49,48 @@ public class ListFragment extends Fragment {
         View view = inflater.inflate(R.layout.frgment_list, container, false);
         ButterKnife.bind(this, view);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        firebaseDataStoreFactory = new FirebaseDataStoreFactory<>();
         return view;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        firebaseDataStoreFactory.data( User.class, getmDatabaseReference(), this);
+
+    }
+
+    private DatabaseReference getmDatabaseReference() {
+        if (mDatabaseReference == null) {
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(Sessions.loadUsername(ListFragment.this.getActivity()));
+            mDatabaseReference.keepSynced(true);
+        }
+        return mDatabaseReference;
+    }
+
+    @Override
+    public void onChildAdded(User child) {
+        
+    }
+
+    @Override
+    public void onChildChanged(User child) {
+
+    }
+
+    @Override
+    public void onChildRemoved(User child) {
+
+    }
+
+    @Override
+    public void onChildMoved(User child) {
+
+    }
+
+    @Override
+    public void onCancelled() {
+        Toast.makeText(this.getActivity(), "Something went wrong", Toast.LENGTH_SHORT);
     }
 
     private class ListAdapter extends RecyclerView.Adapter<ListAdapter.ListHolder> {
