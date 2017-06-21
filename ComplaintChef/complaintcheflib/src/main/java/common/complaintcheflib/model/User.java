@@ -12,6 +12,15 @@ public class User {
     @PropertyName("longitude")
     public Double longitude;
 
+
+    public User() {
+    }
+
+    public User(Double latitude, Double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
     public Double getLatitude() {
         return latitude;
     }

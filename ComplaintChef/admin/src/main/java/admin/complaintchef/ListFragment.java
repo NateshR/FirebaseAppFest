@@ -25,7 +25,6 @@ import common.complaintcheflib.model.Complaint;
 public class ListFragment extends Fragment {
 
     private int position;
-    @BindView(R.id.rv_list)
     RecyclerView recyclerView;
 
     public static ListFragment newInstance(int position) {
@@ -38,7 +37,7 @@ public class ListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.frgment_list, container, false);
-        ButterKnife.bind(this, view);
+        recyclerView = (RecyclerView) view.findViewById(R.id.rv_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         return view;
     }

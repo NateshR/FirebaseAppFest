@@ -8,8 +8,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import common.complaintcheflib.util.BaseAppCompatActivity;
 
 /**
@@ -18,16 +16,15 @@ import common.complaintcheflib.util.BaseAppCompatActivity;
 
 public class MainActivity extends BaseAppCompatActivity {
 
-    @BindView(R.id.tl_main)
     TabLayout tableLayout;
-    @BindView(R.id.vp_main)
     ViewPager viewPager;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+        tableLayout = (TabLayout) findViewById(R.id.tl_main);
+        viewPager = (ViewPager) findViewById(R.id.vp_main);
         viewPager.setAdapter(new MyAdapter(getSupportFragmentManager()));
         tableLayout.setupWithViewPager(viewPager);
     }
