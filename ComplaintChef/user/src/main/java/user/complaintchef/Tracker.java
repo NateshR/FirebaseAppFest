@@ -8,6 +8,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -18,38 +20,66 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import butterknife.BindView;
 import common.complaintcheflib.util.BaseAppCompatActivity;
 import common.complaintcheflib.util.ThreadExecutor;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import user.complaintchef.core.MyApplication;
+import user.complaintchef.net.APIService;
 
 /**
  * Created by nateshrelhan on 6/21/17.
  */
 
 public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback {
-    @BindView(R.id.map)
-    SupportMapFragment mapFragment;
+
+    private SupportMapFragment mapFragment;
     private ThreadExecutor threadExecutor;
     private Double officerLat, officerLong, userLat, userLong;
     private GoogleMap myMap;
+
+    private APIService apiService;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.tracker);
+        mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         threadExecutor = ThreadExecutor.get();
+        apiService = MyApplication.getAPIService();
         mapFragment.getMapAsync(this);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         myMap = googleMap;
-        LatLng user = new LatLng(userLat, userLong);
-        LatLng officer = new LatLng(officerLat, officerLong);
-        myMap.moveCamera(CameraUpdateFactory.newLatLngZoom(officer, 11));
-        threadExecutor.execute(new Runnable() {
+        final LatLng user = new LatLng(200, 300);
+        final LatLng officer = new LatLng(500, 700);
+        BitmapDescriptor destinationIcon = BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher_round);
+        BitmapDescriptor userIcon = BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher_round);
+        MarkerOptions officerMarker = new MarkerOptions().position(officer)
+                .title("Officer Location")
+                .icon(destinationIcon);
+        MarkerOptions userMarker = new MarkerOptions().position(officer)
+                .title("Complaint Location")
+                .icon(destinationIcon);
+        googleMap.addMarker(officerMarker);
+        googleMap.addMarker(userMarker);
+        myMap.moveCamera(CameraUpdateFactory.newLatLng(officer));
+        myMap.animateCamera(CameraUpdateFactory.zoomIn());
+        String origin = "origin=" + officer.latitude + "," + officer.longitude;
+        String destination = "destination=" + user.latitude + "," + user.longitude;
+        String mode = "driving";
+        Call<String> call = apiService.directionsApi(origin, destination, mode, getString(R.string.google_api_key));
+        call.enqueue(new Callback<String>() {
             @Override
-            public void run() {
+            public void onResponse(Call<String> call, Response<String> response) {
+                threadExecutor.execute(new ParserTask(response.body()));
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
 
             }
         });
@@ -97,11 +127,12 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
 
                         lineOptions.addAll(points);
                         lineOptions.width(12);
-                        lineOptions.color(Color.RED);
+                        lineOptions.color(Color.GRAY);
                         lineOptions.geodesic(true);
 
                     }
-                    myMap.addPolyline(lineOptions);
+                    if (lineOptions != null)
+                        myMap.addPolyline(lineOptions);
                 }
             });
         }

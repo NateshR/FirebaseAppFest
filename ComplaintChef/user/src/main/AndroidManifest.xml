@@ -20,8 +20,18 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAZ2W55p-tJ-z62W-HTiIAdobweKDqQXW0" />
+            android:value="@string/google_api_key" />
+        <activity
+            android:name=".Tracker"
+            android:theme="@style/AppTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
     </application>
+
 
 </manifest>

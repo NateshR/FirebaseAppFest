@@ -16,7 +16,7 @@ import java.util.List;
 
 public class PolyParser {
 
-    private static String getDirectionsUrl(LatLng origin, LatLng dest) {
+ /*   public static String getDirectionsUrl(LatLng origin, LatLng dest) {
         String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
         String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
         String mode = "mode=driving";
@@ -26,7 +26,7 @@ public class PolyParser {
         String output = "json";
         String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
         return url;
-    }
+    }*/
 
     /**
      * Receives a JSONObject and returns a list of lists containing latitude and longitude
