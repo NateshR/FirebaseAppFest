@@ -46,7 +46,7 @@ public class ListActivity extends BaseAppCompatActivity implements FirebaseDataS
 
     private DatabaseReference getmDatabaseReference() {
         if (mDatabaseReference == null) {
-            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(KEY_USER).child(Sessions.loadUserName(context)).child(KEY_COMPLAINTS);
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(KEY_USER).child(Sessions.loadUserName(this)).child(KEY_COMPLAINTS);
             mDatabaseReference.keepSynced(true);
         }
         return mDatabaseReference;

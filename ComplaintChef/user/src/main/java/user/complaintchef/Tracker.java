@@ -11,6 +11,7 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -45,7 +46,7 @@ import user.complaintchef.net.APIService;
  * Created by nateshrelhan on 6/21/17.
  */
 
-public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback, FirebaseDataStoreFactory.ChildCallBack {
+public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback, FirebaseDataStoreFactory.ChildCallBack<User> {
 
     private static final String KEY_USER = "users";
     private static final long TRIGGER_DELAY_IN_MS = 1000;
@@ -84,7 +85,7 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
         weakRefHandler = new WeakRefHandler(this);
         gotBundle = getIntent().getExtras();
         firebaseDataStoreFactory = new FirebaseDataStoreFactory<>();
-        firebaseDataStoreFactory.data(User.class, );
+        firebaseDataStoreFactory.data(User.class, getmDatabaseReference(gotBundle.getString("admin_id")), this);
         mapFragment.getMapAsync(this);
     }
 
@@ -105,15 +106,20 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
     private void markAndRoute(LatLng user, LatLng officer) {
         BitmapDescriptor userIcon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(this, R.drawable.ic_user));
         BitmapDescriptor officerIcon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(this, R.drawable.ic_location_pointer));
-        MarkerOptions userMarker = new MarkerOptions().position(user)
-                .title("Complaint Location")
-                .icon(userIcon);
-        MarkerOptions officerMarker = new MarkerOptions().position(officer)
-                .title("Officer Location")
-                .icon(officerIcon);
-        myMap.addMarker(officerMarker);
-        myMap.addMarker(userMarker);
-        myMap.animateCamera(CameraUpdateFactory.newLatLng(officer));
+        if (user != null) {
+            MarkerOptions userMarker = new MarkerOptions().position(user)
+                    .title("Complaint Location")
+                    .icon(userIcon);
+            myMap.addMarker(userMarker);
+        }
+        if (officer != null) {
+            MarkerOptions officerMarker = new MarkerOptions().position(officer)
+                    .title("Officer Location")
+                    .icon(officerIcon);
+            myMap.addMarker(officerMarker);
+            myMap.animateCamera(CameraUpdateFactory.newLatLng(officer));
+        }
+        if (user == null && officer == null) return;
         String origin = officer.latitude + "," + officer.longitude;
         String destination = user.latitude + "," + user.longitude;
         String mode = "driving";
@@ -126,35 +132,11 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-
+                Toast.makeText(Tracker.this, "Something went wrong", Toast.LENGTH_SHORT);
             }
         });
     }
 
-    @Override
-    public void onChildAdded(Object child) {
-
-    }
-
-    @Override
-    public void onChildChanged(Object child) {
-
-    }
-
-    @Override
-    public void onChildRemoved(Object child) {
-
-    }
-
-    @Override
-    public void onChildMoved(Object child) {
-
-    }
-
-    @Override
-    public void onCancelled() {
-
-    }
 
     private DatabaseReference getmDatabaseReference(String id) {
         if (mDatabaseReference == null) {
@@ -162,6 +144,37 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
             mDatabaseReference.keepSynced(true);
         }
         return mDatabaseReference;
+    }
+
+    @Override
+    public void onChildAdded(User child) {
+        gotBundle.putDouble("officer_lat", child.getLatitude());
+        gotBundle.putDouble("officer_long", child.getLongitude());
+        initiateHandler();
+    }
+
+    @Override
+    public void onChildChanged(User child) {
+        gotBundle.putDouble("officer_lat", child.getLatitude());
+        gotBundle.putDouble("officer_long", child.getLongitude());
+        initiateHandler();
+    }
+
+    @Override
+    public void onChildRemoved(User child) {
+        Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT);
+    }
+
+    @Override
+    public void onChildMoved(User child) {
+        gotBundle.putDouble("officer_lat", child.getLatitude());
+        gotBundle.putDouble("officer_long", child.getLongitude());
+        initiateHandler();
+    }
+
+    @Override
+    public void onCancelled() {
+        Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT);
     }
 
     private static final class WeakRefHandler extends Handler {
@@ -176,8 +189,11 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
             if (msg.what == TRIGGER_FETCH && msg.getData() != null) {
                 Tracker tracker = trackerWeakReference.get();
                 Bundle receivedBundle = msg.getData();
-                LatLng userLatLng = new LatLng(receivedBundle.getDouble("user_lat"), receivedBundle.getDouble("user_long"));
-                LatLng officerLatLng = new LatLng(receivedBundle.getDouble("officer_lat"), receivedBundle.getDouble("officer_long"));
+                LatLng userLatLng = null, officerLatLng = null;
+                if (receivedBundle.getDouble("user_lat") != 0.0d && receivedBundle.get("user_long") != 0.0d)
+                    userLatLng = new LatLng(receivedBundle.getDouble("user_lat"), receivedBundle.getDouble("user_long"));
+                if (receivedBundle.getDouble("officer_lat") != 0.0d && receivedBundle.getDouble("officer_long") != 0.0d)
+                    officerLatLng = new LatLng(receivedBundle.getDouble("officer_lat"), receivedBundle.getDouble("officer_long"));
                 if (tracker != null) {
                     tracker.markAndRoute(userLatLng, officerLatLng);
                 }
