@@ -57,14 +57,14 @@ public class MainActivity extends BaseAppCompatActivity {
 
     private class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
 
-        private List<Category> categoryList;
         Map<Integer, Integer> iconsMap = new HashMap<>();
+        private List<Category> categoryList;
 
         public CategoryAdapter() {
             this.categoryList = new ArrayList<>();
-            this.categoryList.add(new Category(1, "Electricity"));
-            this.categoryList.add(new Category(2, "Water"));
-            this.categoryList.add(new Category(3, "Infrastructure"));
+            this.categoryList.add(new Category("1", "Electricity"));
+            this.categoryList.add(new Category("2", "Water"));
+            this.categoryList.add(new Category("3", "Infrastructure"));
             iconsMap.put(1, R.drawable.ic_electrivity);
             iconsMap.put(2, R.drawable.ic_water);
             iconsMap.put(3, R.drawable.ic_infra);

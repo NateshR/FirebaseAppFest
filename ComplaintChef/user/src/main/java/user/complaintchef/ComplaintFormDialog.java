@@ -9,19 +9,24 @@ import android.support.v7.widget.AppCompatButton;
 import android.view.View;
 import android.widget.EditText;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import common.complaintcheflib.model.Category;
+import common.complaintcheflib.model.FileComplaint;
 import common.complaintcheflib.util.LocationUtils;
+import common.complaintcheflib.util.Sessions;
 
 /**
  * Created by Simar Arora on 21/06/17.
  */
 
 public class ComplaintFormDialog extends Dialog {
-
+    private static final String COMPLAINTS = "complaints";
+    private static DatabaseReference mDatabaseReference;
     EditText phoneET;
     EditText detailsET;
     AppCompatButton submitB;
-
     private Category category;
     private Context context;
 
@@ -63,12 +68,22 @@ public class ComplaintFormDialog extends Dialog {
         }
     }
 
-    private void registerComplaint(String phone, String details) {
+    private void registerComplaint(final String phone, final String details) {
         LocationUtils.getCurrentLocation(this.context, new LocationUtils.LocationReceivedCallback() {
             @Override
             public void onLocationReceived(@Nullable Location location) {
                 //Send details now
+                FileComplaint fileComplaint = new FileComplaint(Sessions.loadUsername(ComplaintFormDialog.this.context), "", location.getLatitude(), location.getLongitude(), ComplaintFormDialog.this.category.getCategoryId(), phone, details);
+                getmDatabaseReference().setValue(fileComplaint);
             }
         });
+    }
+
+    private DatabaseReference getmDatabaseReference() {
+        if (mDatabaseReference == null) {
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(COMPLAINTS).child("-" + System.currentTimeMillis());
+            mDatabaseReference.keepSynced(true);
+        }
+        return mDatabaseReference;
     }
 }
