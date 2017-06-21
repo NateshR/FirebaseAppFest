@@ -54,20 +54,19 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         myMap = googleMap;
-        final LatLng user = new LatLng(200, 300);
-        final LatLng officer = new LatLng(500, 700);
-        BitmapDescriptor destinationIcon = BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher_round);
-        BitmapDescriptor userIcon = BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher_round);
+        final LatLng user = new LatLng(28.621899, 77.087838);
+        final LatLng officer = new LatLng(22.244197, 68.968456);
+        BitmapDescriptor userIcon = BitmapDescriptorFactory.fromResource(R.drawable.ic_location_pointer);
+        BitmapDescriptor officerIcon = BitmapDescriptorFactory.fromResource(R.drawable.ic_location_pointer);
+        MarkerOptions userMarker = new MarkerOptions().position(user)
+                .title("Complaint Location")
+                .icon(userIcon);
         MarkerOptions officerMarker = new MarkerOptions().position(officer)
                 .title("Officer Location")
-                .icon(destinationIcon);
-        MarkerOptions userMarker = new MarkerOptions().position(officer)
-                .title("Complaint Location")
-                .icon(destinationIcon);
-        googleMap.addMarker(officerMarker);
-        googleMap.addMarker(userMarker);
-        myMap.moveCamera(CameraUpdateFactory.newLatLng(officer));
-        myMap.animateCamera(CameraUpdateFactory.zoomIn());
+                .icon(officerIcon);
+        myMap.addMarker(officerMarker);
+        myMap.addMarker(userMarker);
+        myMap.animateCamera(CameraUpdateFactory.newLatLng(officer));
         String origin = "origin=" + officer.latitude + "," + officer.longitude;
         String destination = "destination=" + user.latitude + "," + user.longitude;
         String mode = "driving";
