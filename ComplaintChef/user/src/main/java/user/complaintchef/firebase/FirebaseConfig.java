@@ -19,7 +19,6 @@ import user.complaintchef.core.Sessions;
  */
 public class FirebaseConfig {
 
-    public static boolean isActivityDestroyed = false;
     private String TAG = FirebaseConfig.class.getSimpleName();
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -76,7 +75,7 @@ public class FirebaseConfig {
      */
     public void startSignInWithToken(String token) {
         if (token != null && !token.isEmpty()) {
-            if (mAuth != null && !isActivityDestroyed) {
+            if (mAuth != null) {
                 Log.d(TAG, TAG + " sign in with token - " + token);
                 mAuth.signInWithCustomToken(token)
                         .addOnCompleteListener(new OnCompleteListener<AuthResult>() {

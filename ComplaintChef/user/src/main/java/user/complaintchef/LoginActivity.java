@@ -9,6 +9,7 @@ import android.widget.EditText;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import common.complaintcheflib.util.BaseAppCompatActivity;
+import user.complaintchef.firebase.FirebaseConfig;
 
 /**
  * Created by Simar Arora on 21/06/17.
@@ -22,6 +23,7 @@ public class LoginActivity extends BaseAppCompatActivity {
     EditText phoneET;
     @BindView(R.id.b_login)
     AppCompatButton loginB;
+    private FirebaseConfig firebaseConfig;
 
 
     @Override
@@ -29,12 +31,26 @@ public class LoginActivity extends BaseAppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
+        firebaseConfig = new FirebaseConfig(this);
         loginB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onLoginClicked();
             }
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        firebaseConfig.firebaseSignInStatusListenerObservable();
+        firebaseConfig.startAuthState();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        firebaseConfig.stopAuthState();
     }
 
     private void onLoginClicked() {
@@ -60,5 +76,9 @@ public class LoginActivity extends BaseAppCompatActivity {
 
     private void login() {
 
+    }
+
+    private void startSignInWithToken(String token) {
+        firebaseConfig.startSignInWithToken(token);
     }
 }

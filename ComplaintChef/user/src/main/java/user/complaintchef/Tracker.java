@@ -6,6 +6,8 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
@@ -22,6 +24,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,12 +43,16 @@ import user.complaintchef.net.APIService;
 
 public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback {
 
+    private static final long TRIGGER_DELAY_IN_MS = 1000;
+    private static int TRIGGER_FETCH = 101;
     private SupportMapFragment mapFragment;
     private ThreadExecutor threadExecutor;
     private Double officerLat, officerLong, userLat, userLong;
     private GoogleMap myMap;
-
     private APIService apiService;
+    private WeakRefHandler weakRefHandler;
+    private Bundle gotBundle;
+
 
     public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
         Drawable drawable = ContextCompat.getDrawable(context, drawableId);
@@ -68,14 +75,28 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         threadExecutor = ThreadExecutor.get();
         apiService = MyApplication.getAPIService();
+        weakRefHandler = new WeakRefHandler(this);
+        gotBundle = getIntent().getExtras();
+        if (gotBundle == null)
+            gotBundle = new Bundle();
         mapFragment.getMapAsync(this);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         myMap = googleMap;
-        final LatLng user = new LatLng(28.621899, 77.087838);
-        final LatLng officer = new LatLng(22.244197, 68.968456);
+        Message handlerMessage = new Message();
+        handlerMessage.what = TRIGGER_FETCH;
+        gotBundle.putDouble("user_lat", 28.621899);
+        gotBundle.putDouble("user_long", 77.087838);
+        gotBundle.putDouble("officer_lat", 22.244197);
+        gotBundle.putDouble("officer_long", 68.968456);
+        handlerMessage.setData(gotBundle);
+        weakRefHandler.removeMessages(TRIGGER_FETCH);
+        weakRefHandler.sendMessageDelayed(handlerMessage, TRIGGER_DELAY_IN_MS);
+    }
+
+    private void markAndRoute(LatLng user, LatLng officer) {
         BitmapDescriptor userIcon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(this, R.drawable.ic_user));
         BitmapDescriptor officerIcon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(this, R.drawable.ic_location_pointer));
         MarkerOptions userMarker = new MarkerOptions().position(user)
@@ -102,6 +123,27 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
 
             }
         });
+    }
+
+    private static final class WeakRefHandler extends Handler {
+        private final WeakReference<Tracker> trackerWeakReference;
+
+        WeakRefHandler(Tracker tracker) {
+            trackerWeakReference = new WeakReference<>(tracker);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == TRIGGER_FETCH && msg.getData() != null) {
+                Tracker tracker = trackerWeakReference.get();
+                Bundle receivedBundle = msg.getData();
+                LatLng userLatLng = new LatLng(receivedBundle.getDouble("user_lat"), receivedBundle.getDouble("user_long"));
+                LatLng officerLatLng = new LatLng(receivedBundle.getDouble("officer_lat"), receivedBundle.getDouble("officer_long"));
+                if (tracker != null) {
+                    tracker.markAndRoute(userLatLng, officerLatLng);
+                }
+            }
+        }
     }
 
     private class ParserTask implements Runnable {
@@ -154,6 +196,5 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
                 }
             });
         }
-
     }
 }

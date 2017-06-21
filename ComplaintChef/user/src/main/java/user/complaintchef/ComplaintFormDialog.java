@@ -2,7 +2,9 @@ package user.complaintchef;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.location.Location;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatButton;
 import android.view.View;
 import android.widget.EditText;
@@ -10,6 +12,7 @@ import android.widget.EditText;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import common.complaintcheflib.model.Category;
+import common.complaintcheflib.util.LocationUtils;
 
 /**
  * Created by Simar Arora on 21/06/17.
@@ -25,9 +28,11 @@ public class ComplaintFormDialog extends Dialog {
     AppCompatButton submitB;
 
     private Category category;
+    private Context context;
 
     public ComplaintFormDialog(@NonNull Context context, Category category) {
         super(context);
+        this.context = context;
         ButterKnife.bind(this);
         setCancelable(false);
         this.category = category;
@@ -61,6 +66,11 @@ public class ComplaintFormDialog extends Dialog {
     }
 
     private void registerComplaint(String phone, String details) {
-
+        LocationUtils.getCurrentLocation(this.context, new LocationUtils.LocationReceivedCallback() {
+            @Override
+            public void onLocationReceived(@Nullable Location location) {
+                //Send details now
+            }
+        });
     }
 }
