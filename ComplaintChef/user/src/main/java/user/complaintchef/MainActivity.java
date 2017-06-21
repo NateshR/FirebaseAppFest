@@ -2,13 +2,18 @@ package user.complaintchef;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -36,19 +41,25 @@ public class MainActivity extends BaseAppCompatActivity {
     private class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
 
         private List<Category> categoryList;
+        Map<Integer, Integer> iconsMap = new HashMap<>();
 
         public CategoryAdapter(List<Category> categoryList) {
             this.categoryList = categoryList;
+            iconsMap.put(1, R.drawable.ic_electrivity);
+            iconsMap.put(2, R.drawable.ic_water);
+            iconsMap.put(3, R.drawable.ic_infra);
         }
 
         @Override
         public CategoryViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return new CategoryViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.activity_main, parent, false));
+            return new CategoryViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_category, parent, false));
         }
 
         @Override
         public void onBindViewHolder(CategoryViewHolder holder, int position) {
-
+            Category category = categoryList.get(position);
+            holder.nameTV.setText(category.getCategoryName());
+            holder.iconIV.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, iconsMap.get(category.getCategoryId())));
         }
 
         @Override
@@ -58,13 +69,19 @@ public class MainActivity extends BaseAppCompatActivity {
 
         class CategoryViewHolder extends RecyclerView.ViewHolder {
 
-            public CategoryViewHolder(View itemView) {
+            @BindView(R.id.iv_icon)
+            ImageView iconIV;
+            @BindView(R.id.tv_name)
+            TextView nameTV;
+
+            CategoryViewHolder(View itemView) {
                 super(itemView);
-                itemView.setOnClickListener(new View.OnClickListener(){
+                ButterKnife.bind(this, itemView);
+                itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Category category = categoryList.get(getAdapterPosition());
-
+                        new ComplaintFormDialog(MainActivity.this, category).show();
                     }
                 });
             }
