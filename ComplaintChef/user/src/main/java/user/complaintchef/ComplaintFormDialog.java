@@ -37,7 +37,6 @@ public class ComplaintFormDialog extends Dialog {
         phoneET = (EditText) findViewById(R.id.et_phone);
         detailsET = (EditText) findViewById(R.id.et_details);
         submitB = (AppCompatButton) findViewById(R.id.b_submit);
-        setCancelable(false);
         this.category = category;
         submitB.setOnClickListener(new View.OnClickListener() {
             @Override

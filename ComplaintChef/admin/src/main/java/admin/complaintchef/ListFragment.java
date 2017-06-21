@@ -32,7 +32,6 @@ import common.complaintcheflib.util.Sessions;
 public class ListFragment extends Fragment implements FirebaseDataStoreFactory.ChildCallBack<User> {
 
     private static DatabaseReference mDatabaseReference;
-    @BindView(R.id.rv_list)
     RecyclerView recyclerView;
     FirebaseDataStoreFactory<User> firebaseDataStoreFactory;
     private int position;
@@ -47,7 +46,7 @@ public class ListFragment extends Fragment implements FirebaseDataStoreFactory.C
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.frgment_list, container, false);
-        ButterKnife.bind(this, view);
+        recyclerView = (RecyclerView) view.findViewById(R.id.rv_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         firebaseDataStoreFactory = new FirebaseDataStoreFactory<>();
         return view;

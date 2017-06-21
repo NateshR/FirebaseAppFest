@@ -20,6 +20,15 @@ public class User {
     @PropertyName("declined")
     public List<Integer> declinedList;
 
+
+    public User() {
+    }
+
+    public User(Double latitude, Double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
     public Double getLatitude() {
         return latitude;
     }

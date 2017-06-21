@@ -22,8 +22,12 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
+import common.complaintcheflib.model.User;
 import common.complaintcheflib.util.LocationUtils;
+import common.complaintcheflib.util.Sessions;
 
 /**
  * Created by Simar Arora on 21/06/17.
@@ -101,7 +105,19 @@ public class LocationTrackerService extends Service implements OnCompleteListene
     private void saveLocation(Location location){
         if (location == null)
             return;
+        User user = new User(location.getLatitude(), location.getLongitude());
+        getmDatabaseReference().setValue(user);
         Log.d(TAG, "saveLocation: " + location.toString());
+    }
+
+    DatabaseReference mDatabaseReference;
+    private DatabaseReference getmDatabaseReference() {
+
+        if (mDatabaseReference == null) {
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(Sessions.loadUsername(this));
+            mDatabaseReference.keepSynced(true);
+        }
+        return mDatabaseReference;
     }
 
     private void sendCurrentLocation(){
