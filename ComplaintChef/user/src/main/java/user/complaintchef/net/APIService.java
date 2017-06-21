@@ -11,5 +11,5 @@ import retrofit2.http.Query;
 public interface APIService {
 
     @GET("maps/api/directions/json?")
-    Call<Object> myAPI(@Query("origin") String origin);
+    Call<String> directionsApi(@Query("origin") String origin, @Query("destination") String destination, @Query("mode") String mode, @Query("key") String apiKey);
 }

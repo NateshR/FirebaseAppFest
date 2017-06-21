@@ -2,11 +2,8 @@ package user.complaintchef.core;
 
 import android.app.Application;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 import user.complaintchef.net.APIService;
 
 /**
@@ -17,27 +14,26 @@ public class MyApplication extends Application {
 
     private static final String API_ENDPOINT = "https://maps.googleapis.com/";
 
-    private APIService apiService;
+    private static APIService apiService;
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-    }
-
-    public APIService getAPIService() {
+    public static APIService getAPIService() {
         initAPIService();
         return apiService;
     }
 
-    private void initAPIService() {
+    private static void initAPIService() {
         if (apiService == null) {
-            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
             Retrofit retrofit = new Retrofit.Builder()
-                    .addConverterFactory(GsonConverterFactory.create(gson))
+                    .addConverterFactory(ScalarsConverterFactory.create())
                     .baseUrl(API_ENDPOINT)
                     .build();
             apiService = retrofit.create(APIService.class);
         }
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
     }
 
 
