@@ -47,7 +47,6 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
     private static int TRIGGER_FETCH = 101;
     private SupportMapFragment mapFragment;
     private ThreadExecutor threadExecutor;
-    private Double officerLat, officerLong, userLat, userLong;
     private GoogleMap myMap;
     private APIService apiService;
     private WeakRefHandler weakRefHandler;
@@ -77,20 +76,18 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
         apiService = MyApplication.getAPIService();
         weakRefHandler = new WeakRefHandler(this);
         gotBundle = getIntent().getExtras();
-        if (gotBundle == null)
-            gotBundle = new Bundle();
         mapFragment.getMapAsync(this);
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         myMap = googleMap;
+        initiateHandler();
+    }
+
+    private void initiateHandler() {
         Message handlerMessage = new Message();
         handlerMessage.what = TRIGGER_FETCH;
-        gotBundle.putDouble("user_lat", 28.621899);
-        gotBundle.putDouble("user_long", 77.087838);
-        gotBundle.putDouble("officer_lat", 22.244197);
-        gotBundle.putDouble("officer_long", 68.968456);
         handlerMessage.setData(gotBundle);
         weakRefHandler.removeMessages(TRIGGER_FETCH);
         weakRefHandler.sendMessageDelayed(handlerMessage, TRIGGER_DELAY_IN_MS);

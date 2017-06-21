@@ -104,9 +104,11 @@ public class ListActivity extends BaseAppCompatActivity implements FirebaseDataS
                     public void onClick(View v) {
                         if (getAdapterPosition() == -1) return;
                         Complaint complaint = ListAdapter.this.complaintList.get(getAdapterPosition());
-                        Intent intent = new Intent(ListActivity.this,Tracker.class);
-                        intent.putExtra("admin_id",complaint.getAdminId());
-                        intent.putExtra("")
+                        Intent intent = new Intent(ListActivity.this, Tracker.class);
+                        intent.putExtra("admin_id", complaint.getAdminId());
+                        intent.putExtra("user_lat", complaint.getLatitude());
+                        intent.putExtra("user_long", complaint.getLongitude());
+                        startActivity(intent);
                     }
                 });
             }
