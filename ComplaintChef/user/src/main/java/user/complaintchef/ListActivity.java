@@ -1,5 +1,6 @@
 package user.complaintchef;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -9,29 +10,56 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import common.complaintcheflib.model.Complaint;
 import common.complaintcheflib.util.BaseAppCompatActivity;
+import user.complaintchef.core.Sessions;
+import user.complaintchef.firebase.FirebaseDataStoreFactory;
 
 /**
  * Created by Simar Arora on 21/06/17.
  */
 
-public class ListActivity extends BaseAppCompatActivity {
-
+public class ListActivity extends BaseAppCompatActivity implements FirebaseDataStoreFactory.DataListCallBack<Complaint> {
+    private static final String KEY_USER = "users", KEY_COMPLAINTS = "complaints";
+    private static DatabaseReference mDatabaseReference;
     @BindView(R.id.rv_list)
     RecyclerView recyclerView;
+    FirebaseDataStoreFactory<Complaint> firebaseDataStoreFactory;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
         ButterKnife.bind(this);
+        firebaseDataStoreFactory = new FirebaseDataStoreFactory<>();
+        firebaseDataStoreFactory.dataList(FirebaseDataStoreFactory.ListenerType.NODE, Complaint.class, getmDatabaseReference(), this);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(new ListAdapter(null));
+
+    }
+
+    private DatabaseReference getmDatabaseReference() {
+        if (mDatabaseReference == null) {
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(KEY_USER).child(Sessions.loadUserName(context)).child(KEY_COMPLAINTS);
+            mDatabaseReference.keepSynced(true);
+        }
+        return mDatabaseReference;
+    }
+
+    @Override
+    public void onDataChange(List<Complaint> dataList) {
+        recyclerView.setAdapter(new ListAdapter(dataList));
+    }
+
+    @Override
+    public void onCancelled() {
+
     }
 
     private class ListAdapter extends RecyclerView.Adapter<ListAdapter.ListHolder> {
@@ -74,7 +102,11 @@ public class ListActivity extends BaseAppCompatActivity {
 
                     @Override
                     public void onClick(View v) {
-
+                        if (getAdapterPosition() == -1) return;
+                        Complaint complaint = ListAdapter.this.complaintList.get(getAdapterPosition());
+                        Intent intent = new Intent(ListActivity.this,Tracker.class);
+                        intent.putExtra("admin_id",complaint.getAdminId());
+                        intent.putExtra("")
                     }
                 });
             }

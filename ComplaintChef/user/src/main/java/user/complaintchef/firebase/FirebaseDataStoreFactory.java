@@ -122,7 +122,7 @@ public class FirebaseDataStoreFactory<T> {
         }
     }
 
-    enum ListenerType {
+    public enum ListenerType {
         NODE,
         SINGLE_NODE
     }
