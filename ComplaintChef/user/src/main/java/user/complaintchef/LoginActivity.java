@@ -33,6 +33,7 @@ public class LoginActivity extends BaseAppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
         nameET = (EditText) findViewById(R.id.et_name);
         phoneET = (EditText) findViewById(R.id.et_phone);
         loginB = (AppCompatButton) findViewById(R.id.b_login);
@@ -50,6 +51,8 @@ public class LoginActivity extends BaseAppCompatActivity {
         super.onStart();
         firebaseConfig.firebaseSignInStatusListenerObservable();
         firebaseConfig.startAuthState();
+        if (Sessions.loadUsername(this) != null)
+            startActivity(new Intent(LoginActivity.this, MainActivity.class));
     }
 
     @Override

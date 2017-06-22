@@ -52,6 +52,7 @@ public class ListActivity extends BaseAppCompatActivity implements FirebaseDataS
 
     @Override
     public void onDataChange(List<Complaint> dataList) {
+        if (dataList.size() > 0)
         recyclerView.setAdapter(new ListAdapter(dataList));
     }
 
@@ -75,7 +76,10 @@ public class ListActivity extends BaseAppCompatActivity implements FirebaseDataS
 
         @Override
         public void onBindViewHolder(ListHolder holder, int position) {
-
+            Complaint complaint = complaintList.get(position);
+            holder.categoryTV.setText(complaint.getTitle());
+            holder.detailsTV.setText(complaint.getDescription());
+            holder.statusTV.setText(complaint.getStatus());
         }
 
         @Override

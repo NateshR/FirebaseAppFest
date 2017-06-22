@@ -11,7 +11,7 @@ public class Complaint {
     public String complaintId;
     @PropertyName("title")
     public String title;
-    @PropertyName("description")
+    @PropertyName("details")
     public String description;
     @PropertyName("status")
     public String status;
@@ -19,7 +19,7 @@ public class Complaint {
     public Double latitude;
     @PropertyName("longitude")
     public Double longitude;
-    @PropertyName("admin_id")
+    @PropertyName("acceptedBy")
     public String adminId;
 
     public String getComplaintId() {

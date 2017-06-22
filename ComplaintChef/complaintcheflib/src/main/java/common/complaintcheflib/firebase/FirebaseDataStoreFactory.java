@@ -122,6 +122,42 @@ public class FirebaseDataStoreFactory<T> {
         }
     }
 
+    public void data(ListenerType listenerType, final Class<T> exampleClass, Query queryDatabase, final DataCallBack dataListCallBack) {
+        switch (listenerType) {
+            case NODE:
+                Log.d(TAG, " --> attached node listener");
+                ValueEventListener nodeEventListener = new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Log.d(TAG, " --> onDataChanged:" + dataSnapshot.getKey() + " --- " + dataSnapshot.getChildrenCount());
+                        dataListCallBack.onDataChange(dataSnapshot.getValue(exampleClass));
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.d(TAG, " --> onCancelled", databaseError.toException());
+                        dataListCallBack.onCancelled();
+                    }
+                };
+                queryDatabase.addValueEventListener(nodeEventListener);
+            case SINGLE_NODE:
+                ValueEventListener nodeSingleEventListener = new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Log.d(TAG, " --> onDataChanged Single:" + dataSnapshot.getKey() + " --- " + dataSnapshot.getChildrenCount());
+                        dataListCallBack.onDataChange(dataSnapshot.getValue(exampleClass));
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.d(TAG, " --> onCancelled Single", databaseError.toException());
+                        dataListCallBack.onCancelled();
+                    }
+                };
+                queryDatabase.addListenerForSingleValueEvent(nodeSingleEventListener);
+        }
+    }
+
     public enum ListenerType {
         NODE,
         SINGLE_NODE
@@ -141,6 +177,12 @@ public class FirebaseDataStoreFactory<T> {
 
     public interface DataListCallBack<T> {
         void onDataChange(List<T> dataList);
+
+        void onCancelled();
+    }
+
+    public interface DataCallBack<T> {
+        void onDataChange(T dataList);
 
         void onCancelled();
     }

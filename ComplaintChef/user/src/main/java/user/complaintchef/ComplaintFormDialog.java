@@ -63,7 +63,7 @@ public class ComplaintFormDialog extends Dialog {
         }
 
         if (validated) {
-
+            registerComplaint(phone, details);
         }
     }
 
@@ -76,6 +76,7 @@ public class ComplaintFormDialog extends Dialog {
                 getmDatabaseReference().setValue(fileComplaint);
             }
         });
+        dismiss();
     }
 
     private DatabaseReference getmDatabaseReference() {

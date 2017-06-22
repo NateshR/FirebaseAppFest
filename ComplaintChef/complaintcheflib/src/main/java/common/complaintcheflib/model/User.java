@@ -10,9 +10,9 @@ import java.util.List;
 
 public class User {
     @PropertyName("latitude")
-    public Double latitude;
+    public String latitude;
     @PropertyName("longitude")
-    public Double longitude;
+    public String longitude;
     @PropertyName("pending")
     public List<Integer> pendingList;
     @PropertyName("accepted")
@@ -25,23 +25,23 @@ public class User {
     }
 
     public User(Double latitude, Double longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
+        this.latitude = String.valueOf(latitude);
+        this.longitude = String.valueOf(longitude);
     }
 
-    public Double getLatitude() {
+    public String getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(Double latitude) {
+    public void setLatitude(String latitude) {
         this.latitude = latitude;
     }
 
-    public Double getLongitude() {
+    public String getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(Double longitude) {
+    public void setLongitude(String longitude) {
         this.longitude = longitude;
     }
 

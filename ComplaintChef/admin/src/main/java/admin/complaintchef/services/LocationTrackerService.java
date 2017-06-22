@@ -27,7 +27,6 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import common.complaintcheflib.model.User;
 import common.complaintcheflib.util.LocationUtils;
-import common.complaintcheflib.util.Sessions;
 
 /**
  * Created by Simar Arora on 21/06/17.
