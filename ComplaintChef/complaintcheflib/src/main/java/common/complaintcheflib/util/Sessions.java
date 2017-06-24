@@ -56,7 +56,7 @@ public class Sessions {
         return editor.commit();
     }
 
-    public static String loafTokent(Context context){
+    public static String loadToken(Context context){
         if (context == null) {
             return null;
         }

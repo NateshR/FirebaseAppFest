@@ -23,14 +23,14 @@
             android:value="@string/google_api_key_manual" />
 
         <activity
-            android:name=".Tracker"
+            android:name=".view.Tracker"
             android:theme="@style/AppTheme"/>
 
-        <activity android:name=".MainActivity"/>
+        <activity android:name=".view.MainActivity"/>
 
-        <activity android:name=".ListActivity"/>
+        <activity android:name=".view.ListActivity"/>
 
-        <activity android:name=".LoginActivity">
+        <activity android:name=".view.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

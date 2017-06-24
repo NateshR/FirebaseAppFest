@@ -1,4 +1,4 @@
-package user.complaintchef;
+package user.complaintchef.view;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,16 +6,19 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatButton;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import common.complaintcheflib.util.BaseAppCompatActivity;
-import common.complaintcheflib.util.Login;
+import common.complaintcheflib.firebase.FirebaseConfig;
+import common.complaintcheflib.model.User;
+import common.complaintcheflib.net.Login;
+import common.complaintcheflib.view.BaseAppCompatActivity;
 import common.complaintcheflib.util.Sessions;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import user.complaintchef.R;
 import user.complaintchef.core.MyApplication;
-import common.complaintcheflib.firebase.FirebaseConfig;
 
 /**
  * Created by Simar Arora on 21/06/17.
@@ -23,10 +26,11 @@ import common.complaintcheflib.firebase.FirebaseConfig;
 
 public class LoginActivity extends BaseAppCompatActivity {
 
-    EditText nameET;
-    EditText phoneET;
-    AppCompatButton loginB;
+    private EditText nameET;
+    private EditText phoneET;
+    private AppCompatButton loginB;
     private FirebaseConfig firebaseConfig;
+    private ProgressBar progressBar;
 
 
     @Override
@@ -37,6 +41,8 @@ public class LoginActivity extends BaseAppCompatActivity {
         nameET = (EditText) findViewById(R.id.et_name);
         phoneET = (EditText) findViewById(R.id.et_phone);
         loginB = (AppCompatButton) findViewById(R.id.b_login);
+        progressBar = (ProgressBar) findViewById(R.id.progress);
+
         firebaseConfig = new FirebaseConfig(this);
         loginB.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -67,10 +73,10 @@ public class LoginActivity extends BaseAppCompatActivity {
         if (phone.isEmpty()) {
             phoneET.setError("Enter Phone No.");
             validated = false;
-        } else if (phone.length() != 10) {
+        } /*else if (phone.length() != 10) {
             phoneET.setError("Enter Valid Phone No.");
             validated = false;
-        }
+        }*/
         String name = nameET.getText().toString();
         if (name.isEmpty()) {
             nameET.setError("Enter Name");
@@ -78,29 +84,40 @@ public class LoginActivity extends BaseAppCompatActivity {
         }
 
         if (validated) {
-            login(name, phone);
+            loading(true);
+            String uid = name + "_" + System.currentTimeMillis();
+            User user = new User(uid, name, false, phone);
+            login(user);
         }
     }
 
-    private void login(String name, String phone) {
-        String username = Login.login(MyApplication.getAPIService(), name, phone, "0", null, new Callback<String>() {
+    private void login(final User user) {
+        Login.login(MyApplication.getAPIService(), user.getUid(), user.getName(), user.getMobileNo(), String.valueOf(user.getIsAdmin()), "", new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
+                loading(false);
                 String token = response.body();
                 Sessions.setToken(LoginActivity.this, token);
+                Sessions.setUsername(LoginActivity.this, user.getUid());
                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
 
             }
 
             @Override
             public void onFailure(Call<String> call, Throwable throwable) {
-                Toast.makeText(LoginActivity.this, "Something Went Wrong!", Toast.LENGTH_SHORT).show();
+                loading(false);
+                Toast.makeText(LoginActivity.this, "Something Went Wrong!", Toast.LENGTH_LONG).show();
+                Sessions.setUsername(LoginActivity.this, null);
             }
         });
-        Sessions.setUsername(this, username);
+
     }
 
     private void startSignInWithToken(String token) {
         firebaseConfig.startSignInWithToken(token);
+    }
+
+    private void loading(boolean toShow) {
+        progressBar.setVisibility(toShow ? View.VISIBLE : View.GONE);
     }
 }

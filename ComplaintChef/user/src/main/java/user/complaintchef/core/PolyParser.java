@@ -1,4 +1,4 @@
-package user.complaintchef;
+package user.complaintchef.core;
 
 import com.google.android.gms.maps.model.LatLng;
 

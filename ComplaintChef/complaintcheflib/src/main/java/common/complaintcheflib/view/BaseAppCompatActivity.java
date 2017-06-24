@@ -1,4 +1,4 @@
-package common.complaintcheflib.util;
+package common.complaintcheflib.view;
 
 import android.annotation.TargetApi;
 import android.content.pm.PackageManager;

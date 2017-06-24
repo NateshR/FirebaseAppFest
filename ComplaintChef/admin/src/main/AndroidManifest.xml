@@ -14,7 +14,7 @@
         <service android:name=".services.GeofenceTransitionsIntentService" />
         <service android:name=".services.LocationTrackerService" />
 
-        <activity android:name=".LoginActivity">
+        <activity android:name=".view.LoginActivity">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -24,7 +24,7 @@
 
         </activity>
 
-        <activity android:name=".MainActivity"/>
+        <activity android:name=".view.MainActivity"/>
 
     </application>
 

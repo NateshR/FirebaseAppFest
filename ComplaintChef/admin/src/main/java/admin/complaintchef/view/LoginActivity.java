@@ -1,4 +1,4 @@
-package admin.complaintchef;
+package admin.complaintchef.view;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,11 +7,15 @@ import android.support.v7.widget.AppCompatButton;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import admin.complaintchef.R;
+import admin.complaintchef.core.MyApplication;
 import admin.complaintchef.services.LocationTrackerService;
-import common.complaintcheflib.util.BaseAppCompatActivity;
-import common.complaintcheflib.util.Login;
+import common.complaintcheflib.model.User;
+import common.complaintcheflib.net.Login;
+import common.complaintcheflib.view.BaseAppCompatActivity;
 import common.complaintcheflib.util.Sessions;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -23,12 +27,13 @@ import retrofit2.Response;
 
 public class LoginActivity extends BaseAppCompatActivity {
 
-    EditText nameET;
-    EditText phoneET;
-    AppCompatButton loginB;
-    CheckBox electricityCB;
-    CheckBox waterCB;
-    CheckBox infraCB;
+    private EditText nameET;
+    private EditText phoneET;
+    private AppCompatButton loginB;
+    private CheckBox electricityCB;
+    private CheckBox waterCB;
+    private CheckBox infraCB;
+    private ProgressBar progressBar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -41,6 +46,7 @@ public class LoginActivity extends BaseAppCompatActivity {
         electricityCB = (CheckBox) findViewById(R.id.cb_electricity);
         waterCB = (CheckBox) findViewById(R.id.cb_water);
         infraCB = (CheckBox) findViewById(R.id.cb_electricity);
+        progressBar = (ProgressBar) findViewById(R.id.progress);
 
         loginB.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -74,6 +80,7 @@ public class LoginActivity extends BaseAppCompatActivity {
         }
 
         if (validated) {
+            loading(true);
             String categories = "";
             if (electricityCB.isChecked())
                 categories += "1";
@@ -81,25 +88,35 @@ public class LoginActivity extends BaseAppCompatActivity {
                 categories += ",2";
             if (infraCB.isChecked())
                 categories += ",3";
-            login(name, phone, categories);
+            String uid = name + "_" + System.currentTimeMillis();
+            User user = new User(uid, name, true, phone);
+            login(user, categories);
         }
     }
 
-    private void login(String name, String phone, String categories) {
-        String username = Login.login(MyApplication.getAPIService(), name, phone, "1", categories, new Callback<String>() {
+    private void login(final User user, String categories) {
+        Login.login(MyApplication.getAPIService(), user.getUid(), user.getName(), user.getMobileNo(), String.valueOf(user.getIsAdmin()), categories, new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
+                loading(false);
                 String token = response.body();
                 Sessions.setToken(LoginActivity.this, token);
                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                Sessions.setUsername(LoginActivity.this, user.getUid());
 
             }
 
             @Override
             public void onFailure(Call<String> call, Throwable throwable) {
+                loading(false);
                 Toast.makeText(LoginActivity.this, "Something Went Wrong!", Toast.LENGTH_SHORT).show();
+                Sessions.setUsername(LoginActivity.this, null);
             }
         });
-        Sessions.setUsername(this, username);
+
+    }
+
+    private void loading(boolean toShow) {
+        progressBar.setVisibility(toShow ? View.VISIBLE : View.GONE);
     }
 }

@@ -1,4 +1,4 @@
-package admin.complaintchef;
+package admin.complaintchef.view;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -8,7 +8,9 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 
-import common.complaintcheflib.util.BaseAppCompatActivity;
+import admin.complaintchef.R;
+import common.complaintcheflib.view.BaseAppCompatActivity;
+import common.complaintcheflib.view.ListFragment;
 
 /**
  * Created by Simar Arora on 21/06/17.
@@ -29,7 +31,7 @@ public class MainActivity extends BaseAppCompatActivity {
         tableLayout.setupWithViewPager(viewPager);
     }
 
-    private class MyAdapter extends FragmentStatePagerAdapter{
+    private class MyAdapter extends FragmentStatePagerAdapter {
 
         public MyAdapter(FragmentManager fm) {
             super(fm);
@@ -37,7 +39,16 @@ public class MainActivity extends BaseAppCompatActivity {
 
         @Override
         public Fragment getItem(int position) {
-            return ListFragment.newInstance(position);
+            switch (position) {
+                case 0:
+                    return ListFragment.newInstance(ListFragment.LIST_TYPE.PENDING);
+                case 1:
+                    return ListFragment.newInstance(ListFragment.LIST_TYPE.ACCEPTED);
+                case 2:
+                    return ListFragment.newInstance(ListFragment.LIST_TYPE.DECLINED);
+                default:
+                    throw new RuntimeException("Type Not Supported");
+            }
         }
 
         @Override
@@ -47,11 +58,11 @@ public class MainActivity extends BaseAppCompatActivity {
 
         @Override
         public CharSequence getPageTitle(int position) {
-            switch (position){
+            switch (position) {
                 case 0:
                     return "On-GOING";
                 case 1:
-                    return "COMPLETED";
+                    return "ACCEPTED";
                 case 2:
                     return "REJECTED";
             }

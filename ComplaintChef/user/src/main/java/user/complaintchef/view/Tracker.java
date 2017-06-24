@@ -1,4 +1,4 @@
-package user.complaintchef;
+package user.complaintchef.view;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -32,30 +32,31 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import common.complaintcheflib.firebase.FirebaseDataStoreFactory;
 import common.complaintcheflib.model.User;
-import common.complaintcheflib.util.BaseAppCompatActivity;
+import common.complaintcheflib.net.Directions;
+import common.complaintcheflib.view.BaseAppCompatActivity;
 import common.complaintcheflib.util.ThreadExecutor;
+import common.complaintcheflib.view.ListFragment;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import user.complaintchef.R;
 import user.complaintchef.core.MyApplication;
-import common.complaintcheflib.net.APIService;
-import common.complaintcheflib.firebase.FirebaseDataStoreFactory;
+import user.complaintchef.core.PolyParser;
 
 /**
  * Created by nateshrelhan on 6/21/17.
  */
 
-public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback, FirebaseDataStoreFactory.DataCallBack<User> {
+public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback, FirebaseDataStoreFactory.DataListCallBack<User> {
 
-    private static final String KEY_USER = "users";
+    public static final String KEY_ADMIN_ID = "KEY_ADMIN_ID", KEY_USER_LAT = "user_lat", KEY_USER_LONG = "user_long", KEY_OFFICER_LAT = "officer_lat", KEY_OFFICER_LONG = "officer_long";
     private static final long TRIGGER_DELAY_IN_MS = 1000;
-    private static DatabaseReference mDatabaseReference;
     private static int TRIGGER_FETCH = 101;
     private SupportMapFragment mapFragment;
     private ThreadExecutor threadExecutor;
     private GoogleMap myMap;
-    private APIService apiService;
     private WeakRefHandler weakRefHandler;
     private Bundle gotBundle;
     private FirebaseDataStoreFactory<User> firebaseDataStoreFactory;
@@ -81,18 +82,41 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
         setContentView(R.layout.tracker);
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         threadExecutor = ThreadExecutor.get();
-        apiService = MyApplication.getAPIService();
         weakRefHandler = new WeakRefHandler(this);
         gotBundle = getIntent().getExtras();
         firebaseDataStoreFactory = new FirebaseDataStoreFactory<>();
-        firebaseDataStoreFactory.data(FirebaseDataStoreFactory.ListenerType.NODE, User.class, getmDatabaseReference(gotBundle.getString("admin_id")), this);
+        firebaseDataStoreFactory.data(FirebaseDataStoreFactory.ListenerType.NODE, User.class, getmDatabaseReference(gotBundle.getString(KEY_ADMIN_ID)), this);
         mapFragment.getMapAsync(this);
+    }
+
+
+    private DatabaseReference getmDatabaseReference(String adminId) {
+        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(ListFragment.KEY_USER).child(adminId);
+        mDatabaseReference.keepSynced(true);
+        return mDatabaseReference;
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         myMap = googleMap;
         initiateHandler();
+    }
+
+    @Override
+    public void onDataChange(List<User> dataList) {
+
+    }
+
+    @Override
+    public void onSingleDataChange(User data) {
+        gotBundle.putDouble(KEY_OFFICER_LAT, data.getLastLocationLat());
+        gotBundle.putDouble(KEY_OFFICER_LONG, data.getLastLocationLong());
+        initiateHandler();
+    }
+
+    @Override
+    public void onCancelled() {
+        Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT);
     }
 
     private void initiateHandler() {
@@ -123,7 +147,7 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
         String origin = officer.latitude + "," + officer.longitude;
         String destination = user.latitude + "," + user.longitude;
         String mode = "driving";
-        Call<String> call = apiService.directionsApi(origin, destination, mode, getString(R.string.google_api_key));
+        Call<String> call = Directions.findRoute(MyApplication.getAPIService(), origin, destination, mode, getString(R.string.google_api_key));
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
@@ -132,30 +156,9 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-                Toast.makeText(Tracker.this, "Something went wrong", Toast.LENGTH_SHORT);
+                Toast.makeText(Tracker.this, "Something went wrong!", Toast.LENGTH_SHORT);
             }
         });
-    }
-
-
-    private DatabaseReference getmDatabaseReference(String id) {
-        if (mDatabaseReference == null) {
-            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(KEY_USER).child(id);
-            mDatabaseReference.keepSynced(true);
-        }
-        return mDatabaseReference;
-    }
-
-    @Override
-    public void onDataChange(User dataList) {
-        gotBundle.putDouble("officer_lat", Double.parseDouble(dataList.getLatitude()));
-        gotBundle.putDouble("officer_long", Double.parseDouble(dataList.getLongitude()));
-        initiateHandler();
-    }
-
-    @Override
-    public void onCancelled() {
-        Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT);
     }
 
     private static final class WeakRefHandler extends Handler {
@@ -171,10 +174,10 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
                 Tracker tracker = trackerWeakReference.get();
                 Bundle receivedBundle = msg.getData();
                 LatLng userLatLng = null, officerLatLng = null;
-                if (receivedBundle.getDouble("user_lat") != 0.0d && receivedBundle.getDouble("user_long") != 0.0d)
-                    userLatLng = new LatLng(receivedBundle.getDouble("user_lat"), receivedBundle.getDouble("user_long"));
-                if (receivedBundle.getDouble("officer_lat") != 0.0d && receivedBundle.getDouble("officer_long") != 0.0d)
-                    officerLatLng = new LatLng(receivedBundle.getDouble("officer_lat"), receivedBundle.getDouble("officer_long"));
+                if (receivedBundle.getDouble(KEY_USER_LAT) != 0.0d && receivedBundle.getDouble(KEY_USER_LONG) != 0.0d)
+                    userLatLng = new LatLng(receivedBundle.getDouble(KEY_USER_LAT), receivedBundle.getDouble(KEY_USER_LONG));
+                if (receivedBundle.getDouble(KEY_OFFICER_LAT) != 0.0d && receivedBundle.getDouble(KEY_OFFICER_LONG) != 0.0d)
+                    officerLatLng = new LatLng(receivedBundle.getDouble(KEY_OFFICER_LAT), receivedBundle.getDouble(KEY_OFFICER_LONG));
                 if (tracker != null) {
                     tracker.markAndRoute(userLatLng, officerLatLng);
                 }

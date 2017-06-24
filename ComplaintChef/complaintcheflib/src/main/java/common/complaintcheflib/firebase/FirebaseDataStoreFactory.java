@@ -2,7 +2,6 @@ package common.complaintcheflib.firebase;
 
 import android.util.Log;
 
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.Query;
@@ -22,52 +21,6 @@ public class FirebaseDataStoreFactory<T> {
     private static final String TAG = FirebaseDataStoreFactory.class.getSimpleName();
 
     public FirebaseDataStoreFactory() {
-    }
-
-    /**
-     * @param exampleClass  for parsing data into
-     * @param queryDatabase to attach child listener
-     * @return
-     */
-    public void data(final Class<T> exampleClass, Query queryDatabase, final ChildCallBack<T> childCallBack) {
-        Log.d(TAG, " --> attached child listener");
-        ChildEventListener childEventListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
-                Log.d(TAG, " --> onChildAdded:" + dataSnapshot.getKey());
-                T childNodeObject = dataSnapshot.getValue(exampleClass);
-                childCallBack.onChildAdded(childNodeObject);
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                Log.d(TAG, " --> onChildChanged:" + dataSnapshot.getKey());
-                T childNodeObject = dataSnapshot.getValue(exampleClass);
-                childCallBack.onChildChanged(childNodeObject);
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Log.d(TAG, " --> onChildRemoved:" + dataSnapshot.getKey());
-                T childNodeObject = dataSnapshot.getValue(exampleClass);
-                childCallBack.onChildRemoved(childNodeObject);
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
-                Log.d(TAG, " --> onChildMoved:" + dataSnapshot.getKey());
-                T childNodeObject = dataSnapshot.getValue(exampleClass);
-                childCallBack.onChildMoved(childNodeObject);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.d(TAG, " --> onChildCancelled", databaseError.toException());
-                childCallBack.onCancelled();
-            }
-        };
-        queryDatabase.addChildEventListener(childEventListener);
     }
 
     /**
@@ -122,7 +75,7 @@ public class FirebaseDataStoreFactory<T> {
         }
     }
 
-    public void data(ListenerType listenerType, final Class<T> exampleClass, Query queryDatabase, final DataCallBack dataListCallBack) {
+    public void data(ListenerType listenerType, final Class<T> exampleClass, Query queryDatabase, final DataListCallBack dataListCallBack) {
         switch (listenerType) {
             case NODE:
                 Log.d(TAG, " --> attached node listener");
@@ -130,7 +83,7 @@ public class FirebaseDataStoreFactory<T> {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Log.d(TAG, " --> onDataChanged:" + dataSnapshot.getKey() + " --- " + dataSnapshot.getChildrenCount());
-                        dataListCallBack.onDataChange(dataSnapshot.getValue(exampleClass));
+                        dataListCallBack.onSingleDataChange(dataSnapshot.getValue(exampleClass));
                     }
 
                     @Override
@@ -145,7 +98,7 @@ public class FirebaseDataStoreFactory<T> {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Log.d(TAG, " --> onDataChanged Single:" + dataSnapshot.getKey() + " --- " + dataSnapshot.getChildrenCount());
-                        dataListCallBack.onDataChange(dataSnapshot.getValue(exampleClass));
+                        dataListCallBack.onSingleDataChange(dataSnapshot.getValue(exampleClass));
                     }
 
                     @Override
@@ -163,26 +116,10 @@ public class FirebaseDataStoreFactory<T> {
         SINGLE_NODE
     }
 
-    public interface ChildCallBack<T> {
-        void onChildAdded(T child);
-
-        void onChildChanged(T child);
-
-        void onChildRemoved(T child);
-
-        void onChildMoved(T child);
-
-        void onCancelled();
-    }
-
     public interface DataListCallBack<T> {
         void onDataChange(List<T> dataList);
 
-        void onCancelled();
-    }
-
-    public interface DataCallBack<T> {
-        void onDataChange(T dataList);
+        void onSingleDataChange(T data);
 
         void onCancelled();
     }

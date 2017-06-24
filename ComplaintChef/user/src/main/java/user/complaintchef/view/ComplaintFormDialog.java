@@ -1,4 +1,4 @@
-package user.complaintchef;
+package user.complaintchef.view;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -13,9 +13,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import common.complaintcheflib.model.Category;
-import common.complaintcheflib.model.FileComplaint;
+import common.complaintcheflib.model.Complaint;
 import common.complaintcheflib.util.LocationUtils;
 import common.complaintcheflib.util.Sessions;
+import user.complaintchef.R;
 
 /**
  * Created by Simar Arora on 21/06/17.
@@ -23,10 +24,9 @@ import common.complaintcheflib.util.Sessions;
 
 public class ComplaintFormDialog extends Dialog {
     private static final String COMPLAINTS = "complaints";
-    private static DatabaseReference mDatabaseReference;
-    EditText phoneET;
-    EditText detailsET;
-    AppCompatButton submitB;
+    private EditText phoneET;
+    private EditText detailsET;
+    private AppCompatButton submitB;
     private Category category;
     private Context context;
 
@@ -52,10 +52,10 @@ public class ComplaintFormDialog extends Dialog {
         if (phone.isEmpty()) {
             phoneET.setError("Enter Phone No.");
             validated = false;
-        } else if (phone.length() != 10) {
+        } /*else if (phone.length() != 10) {
             phoneET.setError("Enter Valid Phone No.");
             validated = false;
-        }
+        }*/
         String details = detailsET.getText().toString();
         if (details.isEmpty()) {
             detailsET.setError("Enter Details");
@@ -72,18 +72,16 @@ public class ComplaintFormDialog extends Dialog {
             @Override
             public void onLocationReceived(@Nullable Location location) {
                 //Send details now
-                FileComplaint fileComplaint = new FileComplaint(Sessions.loadUsername(ComplaintFormDialog.this.context), "", location.getLatitude(), location.getLongitude(), ComplaintFormDialog.this.category.getCategoryId(), phone, details);
-                getmDatabaseReference().setValue(fileComplaint);
+                String complaintId = "-" + System.currentTimeMillis();
+                getmDatabaseReference(complaintId).setValue(new Complaint(complaintId, category.getName(), details, Sessions.loadUsername(ComplaintFormDialog.this.context), category.getId(), location.getLatitude(), location.getLongitude(), phone));
             }
         });
         dismiss();
     }
 
-    private DatabaseReference getmDatabaseReference() {
-        if (mDatabaseReference == null) {
-            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(COMPLAINTS).child("-" + System.currentTimeMillis());
-            mDatabaseReference.keepSynced(true);
-        }
+    private DatabaseReference getmDatabaseReference(String complaintId) {
+        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(COMPLAINTS).child(complaintId);
+        mDatabaseReference.keepSynced(true);
         return mDatabaseReference;
     }
 }

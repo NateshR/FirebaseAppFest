@@ -10,9 +10,8 @@ import retrofit2.http.Url;
  */
 
 public interface APIService {
-
-    @GET("maps/api/directions/json?")
-    Call<String> directionsApi(@Query("origin") String origin, @Query("destination") String destination, @Query("mode") String mode, @Query("key") String apiKey);
+    @GET
+    Call<String> directionsApi(@Url String url,@Query("origin") String origin, @Query("destination") String destination, @Query("mode") String mode, @Query("key") String apiKey);
 
     @GET
     Call<String> loginApi(@Url String url);

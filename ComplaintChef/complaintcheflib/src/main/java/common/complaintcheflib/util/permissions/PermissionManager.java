@@ -3,7 +3,7 @@ package common.complaintcheflib.util.permissions;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
-import common.complaintcheflib.util.BaseAppCompatActivity;
+import common.complaintcheflib.view.BaseAppCompatActivity;
 
 /**
  * Created by Simar Arora on 03/01/17.

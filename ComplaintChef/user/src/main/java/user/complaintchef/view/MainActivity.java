@@ -1,4 +1,4 @@
-package user.complaintchef;
+package user.complaintchef.view;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,23 +12,35 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import common.complaintcheflib.firebase.FirebaseDataStoreFactory;
 import common.complaintcheflib.model.Category;
-import common.complaintcheflib.util.BaseAppCompatActivity;
+import common.complaintcheflib.view.BaseAppCompatActivity;
+import common.complaintcheflib.view.ListFragment;
+import user.complaintchef.R;
 
 /**
  * Created by Simar Arora on 21/06/17.
  */
 
-public class MainActivity extends BaseAppCompatActivity {
+public class MainActivity extends BaseAppCompatActivity implements FirebaseDataStoreFactory.DataListCallBack<Category> {
 
-    RecyclerView recyclerView;
+    public static final String KEY_CATEGORY = "categories";
+    private RecyclerView recyclerView;
+    private ProgressBar progressBar;
+    private CategoryAdapter categoryAdapter;
+    private FirebaseDataStoreFactory<Category> categoryFirebaseDataStoreFactory;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -36,7 +48,13 @@ public class MainActivity extends BaseAppCompatActivity {
         setContentView(R.layout.activity_main);
         recyclerView = (RecyclerView) findViewById(R.id.rv_main);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
-        recyclerView.setAdapter(new CategoryAdapter());
+        categoryAdapter = new CategoryAdapter();
+        recyclerView.setAdapter(categoryAdapter);
+        progressBar = (ProgressBar) findViewById(R.id.progress);
+
+        categoryFirebaseDataStoreFactory = new FirebaseDataStoreFactory<>();
+        categoryFirebaseDataStoreFactory.dataList(FirebaseDataStoreFactory.ListenerType.NODE, Category.class, getmDatabaseReference(), this);
+        loading(true);
     }
 
     @Override
@@ -49,10 +67,37 @@ public class MainActivity extends BaseAppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_history:
-                startActivity(new Intent(this, ListActivity.class));
+                startActivity(new Intent(this, ListFragment.class));
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void loading(boolean toShow) {
+        progressBar.setVisibility(toShow ? View.VISIBLE : View.GONE);
+    }
+
+    private DatabaseReference getmDatabaseReference() {
+        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(KEY_CATEGORY);
+        mDatabaseReference.keepSynced(true);
+        return mDatabaseReference;
+    }
+
+    @Override
+    public void onDataChange(List<Category> dataList) {
+        loading(false);
+        categoryAdapter.setCategoryList(dataList);
+    }
+
+    @Override
+    public void onSingleDataChange(Category data) {
+
+    }
+
+    @Override
+    public void onCancelled() {
+        loading(false);
+        Toast.makeText(this, "Something went wrong!", Toast.LENGTH_LONG);
     }
 
     private class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
@@ -62,12 +107,24 @@ public class MainActivity extends BaseAppCompatActivity {
 
         public CategoryAdapter() {
             this.categoryList = new ArrayList<>();
-            this.categoryList.add(new Category("1", "Electricity"));
-            this.categoryList.add(new Category("2", "Water"));
-            this.categoryList.add(new Category("3", "Infrastructure"));
-            iconsMap.put("1", R.drawable.ic_electrivity);
-            iconsMap.put("2", R.drawable.ic_water);
-            iconsMap.put("3", R.drawable.ic_infra);
+        }
+
+        public void setCategoryList(List<Category> categoryList) {
+            this.categoryList = categoryList;
+            for (Category category : categoryList) {
+                switch (category.getName()) {
+                    case "electricity":
+                        iconsMap.put(category.getId(), R.drawable.ic_electrivity);
+                        break;
+                    case "water":
+                        iconsMap.put(category.getId(), R.drawable.ic_water);
+                        break;
+                    default:
+                        iconsMap.put(category.getId(), R.drawable.ic_infra);
+                        break;
+                }
+            }
+            notifyDataSetChanged();
         }
 
         @Override
@@ -78,8 +135,8 @@ public class MainActivity extends BaseAppCompatActivity {
         @Override
         public void onBindViewHolder(CategoryViewHolder holder, int position) {
             Category category = categoryList.get(position);
-            holder.nameTV.setText(category.getCategoryName());
-            holder.iconIV.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, iconsMap.get(category.getCategoryId())));
+            holder.nameTV.setText(category.getName());
+            holder.iconIV.setImageDrawable(ContextCompat.getDrawable(MainActivity.this, iconsMap.get(category.getId())));
         }
 
         @Override

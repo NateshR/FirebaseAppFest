@@ -2,6 +2,7 @@ package common.complaintcheflib.model;
 
 import com.google.firebase.database.PropertyName;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -9,63 +10,134 @@ import java.util.List;
  */
 
 public class User {
-    @PropertyName("latitude")
-    public String latitude;
-    @PropertyName("longitude")
-    public String longitude;
+    @PropertyName("uid")
+    public String uid;
+    @PropertyName("name")
+    public String name;
+    @PropertyName("isAdmin")
+    public Boolean isAdmin;
+    @PropertyName("mobileNo")
+    public String mobileNo;
+    @PropertyName("isAvailable")
+    public Boolean isAvailable;
+    @PropertyName("lastLocationLat")
+    public Double lastLocationLat;
+    @PropertyName("lastLocationLong")
+    public Double lastLocationLong;
+    @PropertyName("categories")
+    public List<ComplaintId> categoryList = new ArrayList<>();
+    @PropertyName("complaints")
+    public List<ComplaintId> complaintList = new ArrayList<>();
     @PropertyName("pending")
-    public List<Integer> pendingList;
+    public List<ComplaintId> pendingComplaintList = new ArrayList<>();
     @PropertyName("accepted")
-    public List<Integer> acceptedList;
+    public List<ComplaintId> acceptedComplaintList = new ArrayList<>();
     @PropertyName("declined")
-    public List<Integer> declinedList;
-
+    public List<ComplaintId> declinedComplaintList = new ArrayList<>();
 
     public User() {
     }
 
-    public User(Double latitude, Double longitude) {
-        this.latitude = String.valueOf(latitude);
-        this.longitude = String.valueOf(longitude);
+    public User(String uid, String name, Boolean isAdmin, String mobileNo) {
+        this.uid = uid;
+        this.name = name;
+        this.isAdmin = isAdmin;
+        this.mobileNo = mobileNo;
     }
 
-    public String getLatitude() {
-        return latitude;
+    public String getUid() {
+        return uid;
     }
 
-    public void setLatitude(String latitude) {
-        this.latitude = latitude;
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
-    public String getLongitude() {
-        return longitude;
+    public String getName() {
+        return name;
     }
 
-    public void setLongitude(String longitude) {
-        this.longitude = longitude;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public List<Integer> getPendingList() {
-        return pendingList;
+    public Boolean getIsAdmin() {
+        return isAdmin;
     }
 
-    public void setPendingList(List<Integer> pendingList) {
-        this.pendingList = pendingList;
+    public void setIsAdmin(Boolean isAdmin) {
+        this.isAdmin = isAdmin;
     }
 
-    public List<Integer> getAcceptedList() {
-        return acceptedList;
+    public String getMobileNo() {
+        return mobileNo;
     }
 
-    public void setAcceptedList(List<Integer> acceptedList) {
-        this.acceptedList = acceptedList;
+    public void setMobileNo(String mobileNo) {
+        this.mobileNo = mobileNo;
     }
 
-    public List<Integer> getDeclinedList() {
-        return declinedList;
+    public Boolean getIsAvailable() {
+        return isAvailable;
     }
 
-    public void setDeclinedList(List<Integer> declinedList) {
-        this.declinedList = declinedList;
+    public void setIsAvailable(Boolean isAvailable) {
+        this.isAvailable = isAvailable;
+    }
+
+    public Double getLastLocationLat() {
+        return lastLocationLat;
+    }
+
+    public void setLastLocationLat(Double lastLocationLat) {
+        this.lastLocationLat = lastLocationLat;
+    }
+
+    public Double getLastLocationLong() {
+        return lastLocationLong;
+    }
+
+    public void setLastLocationLong(Double lastLocationLong) {
+        this.lastLocationLong = lastLocationLong;
+    }
+
+    public List<ComplaintId> getCategoryList() {
+        return categoryList;
+    }
+
+    public void setCategoryList(List<ComplaintId> categoryList) {
+        this.categoryList = categoryList;
+    }
+
+    public List<ComplaintId> getComplaintList() {
+        return complaintList;
+    }
+
+    public void setComplaintList(List<ComplaintId> complaintList) {
+        this.complaintList = complaintList;
+    }
+
+    public List<ComplaintId> getPendingComplaintList() {
+        return pendingComplaintList;
+    }
+
+    public void setPendingComplaintList(List<ComplaintId> pendingComplaintList) {
+        this.pendingComplaintList = pendingComplaintList;
+    }
+
+    public List<ComplaintId> getAcceptedComplaintList() {
+        return acceptedComplaintList;
+    }
+
+    public void setAcceptedComplaintList(List<ComplaintId> acceptedComplaintList) {
+        this.acceptedComplaintList = acceptedComplaintList;
+    }
+
+    public List<ComplaintId> getDeclinedComplaintList() {
+        return declinedComplaintList;
+    }
+
+    public void setDeclinedComplaintList(List<ComplaintId> declinedComplaintList) {
+        this.declinedComplaintList = declinedComplaintList;
     }
 }
