@@ -25,8 +25,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import common.complaintcheflib.model.User;
 import common.complaintcheflib.util.LocationUtils;
+import common.complaintcheflib.util.Sessions;
 
 /**
  * Created by Simar Arora on 21/06/17.
@@ -35,19 +35,19 @@ import common.complaintcheflib.util.LocationUtils;
 public class LocationTrackerService extends Service implements OnCompleteListener<Void> {
 
     public static final String TAG = LocationTrackerService.class.getSimpleName();
-
+    private static final String KEY_LAST_LATITUDE = "lastLocationLat", KEY_LAST_LONGITUDE = "lastLocationLong";
     private static boolean instanceRunning = false;
-
-    public static boolean isInstanceRunning(){
-        return instanceRunning;
-    }
-
+    private DatabaseReference mDatabaseReference;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationCallback locationCallback;
     private GeofencingClient geofencingClient;
     private BroadcastReceiver geofenceExitReceiver;
 
     public LocationTrackerService() {
+    }
+
+    public static boolean isInstanceRunning() {
+        return instanceRunning;
     }
 
     @Nullable
@@ -83,6 +83,14 @@ public class LocationTrackerService extends Service implements OnCompleteListene
         return super.onStartCommand(intent, flags, startId);
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+        unregisterReceiver(geofenceExitReceiver);
+        instanceRunning = false;
+    }
+
     private PendingIntent getGeofencePendingIntent() {
         Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -101,25 +109,23 @@ public class LocationTrackerService extends Service implements OnCompleteListene
 
     }
 
-    private void saveLocation(Location location){
+    private void saveLocation(Location location) {
         if (location == null)
             return;
-        User user = new User(location.getLatitude(), location.getLongitude());
-        getmDatabaseReference().setValue(user);
         Log.d(TAG, "saveLocation: " + location.toString());
+        getmDatabaseReference().child(KEY_LAST_LATITUDE).setValue(location.getLatitude());
+        getmDatabaseReference().child(KEY_LAST_LONGITUDE).setValue(location.getLongitude());
     }
 
-    DatabaseReference mDatabaseReference;
     private DatabaseReference getmDatabaseReference() {
-
         if (mDatabaseReference == null) {
-            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users").child("simar");
+            mDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users").child(Sessions.loadUsername(this));
             mDatabaseReference.keepSynced(true);
         }
         return mDatabaseReference;
     }
 
-    private void sendCurrentLocation(){
+    private void sendCurrentLocation() {
         LocationUtils.getCurrentLocation(this, new LocationUtils.LocationReceivedCallback() {
             @Override
             public void onLocationReceived(@Nullable Location location) {
@@ -128,19 +134,11 @@ public class LocationTrackerService extends Service implements OnCompleteListene
         });
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        fusedLocationProviderClient.removeLocationUpdates(locationCallback);
-        unregisterReceiver(geofenceExitReceiver);
-        instanceRunning = false;
-    }
-
-    private boolean checkPermission(){
+    private boolean checkPermission() {
         return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 
-    private class GeofenceExitReceiver extends BroadcastReceiver{
+    private class GeofenceExitReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
