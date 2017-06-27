@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -120,8 +121,14 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
             mark(currentOfficer);
         else {
             route(currentOfficer);
-            if (previousOfficer != null)
-                moveOfficerToNewPosition(previousOfficer, currentOfficer);
+            if (previousOfficer != null) {
+                float[] distance = new float[1];
+                Location.distanceBetween(previousOfficer.latitude, previousOfficer.longitude, currentOfficer.latitude, currentOfficer.longitude, distance);
+                // distance[0] is now the distance between these lat/lons in meters
+                if (distance[0] > 1.0) {
+                    moveOfficerToNewPosition(previousOfficer, currentOfficer);
+                }
+            }
             previousOfficer = new LatLng(data.getLastLocationLat(), data.getLastLocationLong());
         }
 
@@ -147,7 +154,7 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
                     .title("Officer Location")
                     .icon(officerIcon);
             officerMaker = myMap.addMarker(officerMarker);
-            myMap.animateCamera(CameraUpdateFactory.newLatLngZoom(officer, 14));
+            myMap.animateCamera(CameraUpdateFactory.newLatLngZoom(officer, 16));
 
             route(officer);
         }
@@ -175,11 +182,11 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
         final Handler handler = new Handler();
         final long start = SystemClock.uptimeMillis();
         final Interpolator interpolator = new AccelerateDecelerateInterpolator();
-        final float durationInMs = 5000;
+        final float durationInMs = 20000;
         final boolean hideMarker = false;
         handler.post(new Runnable() {
             long elapsed;
-            float t;
+            float t, v;
 
             @Override
             public void run() {
@@ -189,12 +196,13 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
                 Log.d("Tracker", "Elapsed - " + elapsed);
                 Log.d("Tracker", "divide - " + elapsed
                         / durationInMs);
-                t = interpolator.getInterpolation((float) elapsed
+                t = elapsed / durationInMs;
+                v = interpolator.getInterpolation((float) elapsed
                         / durationInMs);
-                Log.d("Tracker", "T - " + t);
+                Log.d("Tracker", "T - " + t + "___" + v);
                 LatLng currentPosition = new LatLng(
-                        officer.latitude * (1 - t) + updatedOfficer.latitude * t,
-                        officer.longitude * (1 - t) + updatedOfficer.longitude * t);
+                        officer.latitude * (1 - v) + updatedOfficer.latitude * v,
+                        officer.longitude * (1 - v) + updatedOfficer.longitude * v);
                 Log.d("Tracker", "Pos - " + currentPosition.latitude + "," + currentPosition.longitude);
                 officerMaker.setPosition(currentPosition);
 

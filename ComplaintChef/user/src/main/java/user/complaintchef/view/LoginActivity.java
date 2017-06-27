@@ -86,7 +86,7 @@ public class LoginActivity extends BaseAppCompatActivity {
         if (validated) {
             loading(true);
             String uid = name + "_" + System.currentTimeMillis();
-            User user = new User(uid, name, false, phone);
+            User user = new User(uid, name, false, phone, null);
             login(user);
         }
     }

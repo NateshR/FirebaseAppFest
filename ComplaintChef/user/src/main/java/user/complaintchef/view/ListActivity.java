@@ -21,7 +21,7 @@ public class ListActivity extends BaseAppCompatActivity implements ListClickCall
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
         FragmentManager fragmentManager = getSupportFragmentManager();
-        ListFragment listFragment = ListFragment.newInstance(ListFragment.LIST_TYPE.COMPLAINT);
+        ListFragment listFragment = ListFragment.newInstance(ListFragment.LIST_TYPE.COMPLAINT, ListFragment.FROM_ACTIVITY.USER);
         if (fragmentManager.findFragmentById(R.id.fragment_container) == null) {
             fragmentManager.beginTransaction().replace(R.id.fragment_container, listFragment).commit();
         }

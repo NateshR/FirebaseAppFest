@@ -11,6 +11,7 @@ public class Category {
     private Integer id;
     @PropertyName("name")
     private String name;
+    private boolean isChecked = false;
 
     public Category() {
     }
@@ -30,5 +31,13 @@ public class Category {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isChecked() {
+        return isChecked;
+    }
+
+    public void setChecked(boolean checked) {
+        isChecked = checked;
     }
 }

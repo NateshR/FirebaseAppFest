@@ -13,6 +13,10 @@ public class ComplaintId {
     public ComplaintId() {
     }
 
+    public ComplaintId(String complaintId) {
+        this.complaintId = complaintId;
+    }
+
     public String getComplaintId() {
         return complaintId;
     }

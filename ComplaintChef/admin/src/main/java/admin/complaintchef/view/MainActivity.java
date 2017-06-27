@@ -25,12 +25,20 @@ import com.google.android.gms.location.SettingsClient;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.List;
 
 import admin.complaintchef.R;
 import admin.complaintchef.services.LocationTrackerService;
+import common.complaintcheflib.firebase.FirebaseDataStoreFactory;
 import common.complaintcheflib.model.Complaint;
+import common.complaintcheflib.model.ComplaintId;
+import common.complaintcheflib.model.User;
 import common.complaintcheflib.util.ListClickCallback;
 import common.complaintcheflib.util.LocationUtils;
+import common.complaintcheflib.util.Sessions;
 import common.complaintcheflib.util.permissions.Permission;
 import common.complaintcheflib.util.permissions.PermissionDeniedCallback;
 import common.complaintcheflib.util.permissions.PermissionManager;
@@ -42,11 +50,16 @@ import common.complaintcheflib.view.ListFragment;
  * Created by Simar Arora on 21/06/17.
  */
 
-public class MainActivity extends BaseAppCompatActivity implements ListClickCallback, DialogInterface.OnClickListener {
+public class MainActivity extends BaseAppCompatActivity implements ListClickCallback, DialogInterface.OnClickListener, FirebaseDataStoreFactory.DataListCallBack<User> {
 
-    private static final int REQUEST_CHECK_SETTINGS = 101, ACCEPT_CODE = 0, DECLINE_CODE = 1, DISMISS_CODE = 2;
-    TabLayout tableLayout;
-    ViewPager viewPager;
+    public static final String KEY_USER = "users", KEY_COMPLAINTS = "complaints", KEY_ADMIN = "admin", KEY_STATUS = "status", KEY_PENDING_LIST = "pending", KEY_ACCEPTED_LIST = "accepted", KEY_DECLINED_LIST = "declined";
+    private static final int REQUEST_CHECK_SETTINGS = 101;
+    private TabLayout tableLayout;
+    private ViewPager viewPager;
+    private User currentUser;
+    private Complaint selectedComplaint;
+    private int taskToDo = 0;
+    private FirebaseDataStoreFactory<User> firebaseDataStoreFactoryUser;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,6 +80,12 @@ public class MainActivity extends BaseAppCompatActivity implements ListClickCall
                 finish();
             }
         });
+        injectFirebaseDataStoreFactoryUser();
+    }
+
+    private void injectFirebaseDataStoreFactoryUser() {
+        firebaseDataStoreFactoryUser = new FirebaseDataStoreFactory<>();
+        firebaseDataStoreFactoryUser.data(FirebaseDataStoreFactory.ListenerType.NODE, User.class, getUserDatabaseReference(), this);
     }
 
     private void checkLocationSettingsAndStartService() {
@@ -121,25 +140,144 @@ public class MainActivity extends BaseAppCompatActivity implements ListClickCall
 
     @Override
     public void itemClicked(Complaint complaint) {
+        this.selectedComplaint = complaint;
         AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-        alertDialog.setTitle("Update the status of complaint");
-        alertDialog.setMessage(complaint.getDescription());
-        alertDialog.setButton(ACCEPT_CODE, "Accept", this);
-        alertDialog.setButton(DECLINE_CODE, "Decline", this);
-        alertDialog.setButton(DISMISS_CODE, "Cancel", this);
+        switch (complaint.getStatus()) {
+            case Complaint.STATUS_PENDING:
+                alertDialog.setTitle("Update the status of complaint!");
+                alertDialog.setMessage(complaint.getDescription());
+                alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "Accept", this);
+                alertDialog.setButton(DialogInterface.BUTTON_NEUTRAL, "Cancel", this);
+                alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Decline", this);
+                break;
+            case Complaint.STATUS_ACCEPTED:
+                alertDialog.setTitle("Do you want to decline this complaint?");
+                alertDialog.setMessage(complaint.getDescription());
+                alertDialog.setButton(DialogInterface.BUTTON_NEUTRAL, "Cancel", this);
+                alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Decline", this);
+                break;
+            case Complaint.STATUS_DECLINED:
+                alertDialog.setTitle("Do you want to accept this complaint?");
+                alertDialog.setMessage(complaint.getDescription());
+                alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "Accept", this);
+                alertDialog.setButton(DialogInterface.BUTTON_NEUTRAL, "Cancel", this);
+                break;
+        }
         alertDialog.show();
     }
 
     @Override
     public void onClick(DialogInterface dialogInterface, int i) {
+        if (this.currentUser == null) {
+            taskToDo = i;
+            injectFirebaseDataStoreFactoryUser();
+            return;
+        }
+        this.selectedComplaint.setAdmin(this.currentUser.getUid());
         switch (i) {
-            case ACCEPT_CODE:
+            case DialogInterface.BUTTON_POSITIVE:
+                this.selectedComplaint.setStatus(Complaint.STATUS_ACCEPTED);
+                removeFromPendingComplaintIdList();
+                removeFromDeclinedComplaintIdList();
+                addToAcceptedComplaintIdList();
                 break;
-            case DECLINE_CODE:
+            case DialogInterface.BUTTON_NEGATIVE:
+                this.selectedComplaint.setStatus(Complaint.STATUS_DECLINED);
+                removeFromPendingComplaintIdList();
+                removeFromAcceptedComplaintIdList();
+                addToDeclinedComplaintIdList();
                 break;
-            case DISMISS_CODE:
+            default:
                 break;
         }
+        updateComplaint();
+        this.selectedComplaint = null;
+    }
+
+    private void updateComplaint() {
+        getComplaintDatabaseReference().child(this.selectedComplaint.getComplaintId()).child(KEY_ADMIN).setValue(this.selectedComplaint.getAdmin());
+        getComplaintDatabaseReference().child(this.selectedComplaint.getComplaintId()).child(KEY_STATUS).setValue(this.selectedComplaint.getStatus());
+    }
+
+    private void removeFromPendingComplaintIdList() {
+        List<ComplaintId> pendingComplaintIdList = this.currentUser.getPendingComplaintList();
+        if (pendingComplaintIdList != null) {
+            for (ComplaintId complaintId : pendingComplaintIdList) {
+                if (this.selectedComplaint.getComplaintId().equals(complaintId.getComplaintId())) {
+                    pendingComplaintIdList.remove(complaintId);
+                    break;
+                }
+            }
+            getUserDatabaseReference().child(KEY_PENDING_LIST).setValue(pendingComplaintIdList);
+        }
+    }
+
+    private void removeFromDeclinedComplaintIdList() {
+        List<ComplaintId> declinedComplaintList = this.currentUser.getDeclinedComplaintList();
+        if (declinedComplaintList != null) {
+            for (ComplaintId complaintId : declinedComplaintList) {
+                if (this.selectedComplaint.getComplaintId().equals(complaintId.getComplaintId())) {
+                    declinedComplaintList.remove(complaintId);
+                    break;
+                }
+            }
+            getUserDatabaseReference().child(KEY_DECLINED_LIST).setValue(declinedComplaintList);
+        }
+    }
+
+    private void removeFromAcceptedComplaintIdList() {
+        List<ComplaintId> acceptedComplaintList = this.currentUser.getAcceptedComplaintList();
+        if (acceptedComplaintList != null) {
+            for (ComplaintId complaintId : acceptedComplaintList) {
+                if (this.selectedComplaint.getComplaintId().equals(complaintId.getComplaintId())) {
+                    acceptedComplaintList.remove(complaintId);
+                    break;
+                }
+            }
+            getUserDatabaseReference().child(KEY_ACCEPTED_LIST).setValue(acceptedComplaintList);
+        }
+    }
+
+    private void addToDeclinedComplaintIdList() {
+        List<ComplaintId> declinedComplaintList = this.currentUser.getDeclinedComplaintList();
+        declinedComplaintList.add(new ComplaintId(this.selectedComplaint.getComplaintId()));
+        getUserDatabaseReference().child(KEY_DECLINED_LIST).setValue(declinedComplaintList);
+    }
+
+    private void addToAcceptedComplaintIdList() {
+        List<ComplaintId> acceptedComplaintList = this.currentUser.getAcceptedComplaintList();
+        acceptedComplaintList.add(new ComplaintId(this.selectedComplaint.getComplaintId()));
+        getUserDatabaseReference().child(KEY_ACCEPTED_LIST).setValue(acceptedComplaintList);
+    }
+
+    private DatabaseReference getUserDatabaseReference() {
+        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(KEY_USER).child(Sessions.loadUsername(this));
+        mDatabaseReference.keepSynced(true);
+        return mDatabaseReference;
+    }
+
+    private DatabaseReference getComplaintDatabaseReference() {
+        DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(KEY_COMPLAINTS);
+        mDatabaseReference.keepSynced(true);
+        return mDatabaseReference;
+    }
+
+    @Override
+    public void onDataChange(List<User> dataList) {
+
+    }
+
+    @Override
+    public void onSingleDataChange(User data) {
+        if (data == null) return;
+        this.currentUser = data;
+        if (taskToDo != 0)
+            onClick(null, taskToDo);
+    }
+
+    @Override
+    public void onCancelled() {
+
     }
 
     private class MyAdapter extends FragmentStatePagerAdapter {
@@ -152,11 +290,11 @@ public class MainActivity extends BaseAppCompatActivity implements ListClickCall
         public Fragment getItem(int position) {
             switch (position) {
                 case 0:
-                    return ListFragment.newInstance(ListFragment.LIST_TYPE.PENDING);
+                    return ListFragment.newInstance(ListFragment.LIST_TYPE.PENDING, ListFragment.FROM_ACTIVITY.ADMIN);
                 case 1:
-                    return ListFragment.newInstance(ListFragment.LIST_TYPE.ACCEPTED);
+                    return ListFragment.newInstance(ListFragment.LIST_TYPE.ACCEPTED, ListFragment.FROM_ACTIVITY.ADMIN);
                 case 2:
-                    return ListFragment.newInstance(ListFragment.LIST_TYPE.DECLINED);
+                    return ListFragment.newInstance(ListFragment.LIST_TYPE.DECLINED, ListFragment.FROM_ACTIVITY.ADMIN);
                 default:
                     throw new RuntimeException("Type Not Supported");
             }

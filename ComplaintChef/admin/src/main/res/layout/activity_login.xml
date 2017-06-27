@@ -32,26 +32,10 @@
             android:gravity="center_horizontal"
             android:orientation="horizontal">
 
-            <CheckBox
-                android:id="@+id/cb_electricity"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="4dp"
-                android:text="Electricity" />
-
-            <CheckBox
-                android:id="@+id/cb_water"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="4dp"
-                android:text="Water" />
-
-            <CheckBox
-                android:id="@+id/cb_infra"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="4dp"
-                android:text="Infrastructure" />
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_main"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
         </LinearLayout>
 

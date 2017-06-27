@@ -32,19 +32,21 @@ import common.complaintcheflib.util.Sessions;
  */
 
 public class ListFragment extends BaseFragment implements FirebaseDataStoreFactory.DataListCallBack {
-    public static final String KEY_USER = "users", KEY_COMPLAINTS = "complaints", KEY_LIST_TYPE = "list_type";
+    public static final String KEY_USER = "users", KEY_COMPLAINTS = "complaints", KEY_LIST_TYPE = "list_type", KEY_FROM_ACTIVITY = "from_activity";
     private RecyclerView recyclerView;
     private FirebaseDataStoreFactory<User> firebaseDataStoreFactoryUser;
     private FirebaseDataStoreFactory<Complaint> firebaseDataStoreFactoryComplaint;
     private ProgressBar progressBar;
     private ListAdapter listAdapter;
     private LIST_TYPE listType;
+    private FROM_ACTIVITY fromActivity;
     private ListClickCallback listClickCallback;
 
-    public static ListFragment newInstance(LIST_TYPE listType) {
+    public static ListFragment newInstance(LIST_TYPE listType, FROM_ACTIVITY fromActivity) {
         ListFragment listFragment = new ListFragment();
         Bundle bundle = new Bundle();
         bundle.putString(KEY_LIST_TYPE, listType.name());
+        bundle.putString(KEY_FROM_ACTIVITY, fromActivity.name());
         listFragment.setArguments(bundle);
         return listFragment;
     }
@@ -62,6 +64,7 @@ public class ListFragment extends BaseFragment implements FirebaseDataStoreFacto
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.listType = LIST_TYPE.valueOf(getArguments().getString(KEY_LIST_TYPE));
+        this.fromActivity = FROM_ACTIVITY.valueOf(getArguments().getString(KEY_FROM_ACTIVITY));
     }
 
     @Nullable
@@ -132,7 +135,19 @@ public class ListFragment extends BaseFragment implements FirebaseDataStoreFacto
             }
         } else if (data instanceof Complaint) {
             Complaint complaint = (Complaint) data;
-            this.listAdapter.addComplaint(complaint);
+            if (this.fromActivity == FROM_ACTIVITY.USER)
+                this.listAdapter.addComplaint(complaint);
+            else {
+                switch (this.listType) {
+                    case PENDING:
+                        if (complaint.getAdmin() == null)
+                            this.listAdapter.addComplaint(complaint);
+                        break;
+                    default:
+                        this.listAdapter.addComplaint(complaint);
+                        break;
+                }
+            }
         }
     }
 
@@ -151,6 +166,11 @@ public class ListFragment extends BaseFragment implements FirebaseDataStoreFacto
         PENDING,
         ACCEPTED,
         DECLINED,
+    }
+
+    public enum FROM_ACTIVITY {
+        ADMIN,
+        USER,
     }
 
     private class ListAdapter extends RecyclerView.Adapter<ListAdapter.ListHolder> {
@@ -226,10 +246,24 @@ public class ListFragment extends BaseFragment implements FirebaseDataStoreFacto
                                 ListFragment.this.listClickCallback.itemClicked(complaint);
                                 break;
                             case Complaint.STATUS_PENDING:
-                                Snackbar.make(recyclerView, "Wait till someone accepts your complaint", Snackbar.LENGTH_LONG).show();
+                                switch (ListFragment.this.fromActivity) {
+                                    case USER:
+                                        Snackbar.make(recyclerView, "Wait till someone accepts your complaint", Snackbar.LENGTH_LONG).show();
+                                        break;
+                                    case ADMIN:
+                                        ListFragment.this.listClickCallback.itemClicked(complaint);
+                                        break;
+                                }
                                 break;
-                            default:
-                                Snackbar.make(recyclerView, "Your complaint has been declined by our officers", Snackbar.LENGTH_LONG).show();
+                            case Complaint.STATUS_DECLINED:
+                                switch (ListFragment.this.fromActivity) {
+                                    case USER:
+                                        Snackbar.make(recyclerView, "Your complaint has been declined by our officers", Snackbar.LENGTH_LONG).show();
+                                        break;
+                                    case ADMIN:
+                                        ListFragment.this.listClickCallback.itemClicked(complaint);
+                                        break;
+                                }
                                 break;
                         }
                     }

@@ -24,8 +24,7 @@ public class User {
     public Double lastLocationLat;
     @PropertyName("lastLocationLong")
     public Double lastLocationLong;
-    @PropertyName("categories")
-    public List<ComplaintId> categoryList = new ArrayList<>();
+    public List<Category> categoryList = new ArrayList<>();
     @PropertyName("complaints")
     public List<ComplaintId> complaintList = new ArrayList<>();
     @PropertyName("pending")
@@ -38,11 +37,12 @@ public class User {
     public User() {
     }
 
-    public User(String uid, String name, Boolean isAdmin, String mobileNo) {
+    public User(String uid, String name, Boolean isAdmin, String mobileNo, List<Category> categoryList) {
         this.uid = uid;
         this.name = name;
         this.isAdmin = isAdmin;
         this.mobileNo = mobileNo;
+        this.categoryList = categoryList;
     }
 
     public String getUid() {
@@ -101,11 +101,11 @@ public class User {
         this.lastLocationLong = lastLocationLong;
     }
 
-    public List<ComplaintId> getCategoryList() {
+    public List<Category> getCategoryList() {
         return categoryList;
     }
 
-    public void setCategoryList(List<ComplaintId> categoryList) {
+    public void setCategoryList(List<Category> categoryList) {
         this.categoryList = categoryList;
     }
 
