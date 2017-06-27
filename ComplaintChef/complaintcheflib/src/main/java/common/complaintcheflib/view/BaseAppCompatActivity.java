@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.util.SparseArray;
 
 import common.complaintcheflib.util.permissions.Permission;
@@ -55,6 +56,7 @@ public class BaseAppCompatActivity extends AppCompatActivity {
 
     @TargetApi(Build.VERSION_CODES.M)
     public boolean canRequestPermission(Permission permission) {
+        Log.d("Permission", "to request - " + shouldShowRequestPermissionRationale(permission.getPermissionName()) + "   " + !wasRequestedBefore(permission));
         return !wasRequestedBefore(permission) || shouldShowRequestPermissionRationale(permission.getPermissionName());
     }
 

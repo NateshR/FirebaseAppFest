@@ -11,24 +11,22 @@ import common.complaintcheflib.view.BaseAppCompatActivity;
 
 public class PermissionManager {
 
-    public static void performTaskWithPermission(@NonNull BaseAppCompatActivity activity, final @NonNull PermissionTask task, Permission permission) {
+    public static void performTaskWithPermission(@NonNull BaseAppCompatActivity activity, final @NonNull PermissionTask task, Permission permission, final PermissionDeniedCallback permissionDeniedCallback) {
         if (activity.hasPermission(permission))
             task.doTask();
         else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (activity.canRequestPermission(permission)) {
-                    activity.requestPermission(permission, new PermissionCallback() {
-                        @Override
-                        public void onGrant() {
-                            task.doTask();
-                        }
+                activity.requestPermission(permission, new PermissionCallback() {
+                    @Override
+                    public void onGrant() {
+                        task.doTask();
+                    }
 
-                        @Override
-                        public void onDeny() {
-
-                        }
-                    });
-                }
+                    @Override
+                    public void onDeny() {
+                        if (permissionDeniedCallback != null) permissionDeniedCallback.onDeny();
+                    }
+                });
             }
         }
     }

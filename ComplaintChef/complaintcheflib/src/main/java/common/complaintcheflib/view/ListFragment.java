@@ -103,7 +103,9 @@ public class ListFragment extends BaseFragment implements FirebaseDataStoreFacto
 
     @Override
     public void onSingleDataChange(Object data) {
-        if (data == null) return;
+        loading(false);
+        if (data == null)
+            return;
         if (data instanceof User) {
             User user = (User) data;
             List<ComplaintId> complaintIdsList = new ArrayList<>();
@@ -121,10 +123,8 @@ public class ListFragment extends BaseFragment implements FirebaseDataStoreFacto
                     complaintIdsList.addAll(user.getDeclinedComplaintList());
                     break;
             }
-            if (complaintIdsList.size() == 0) {
-                loading(false);
+            if (complaintIdsList.size() == 0)
                 return;
-            }
             for (ComplaintId complaintId : complaintIdsList) {
                 if (complaintId == null) continue;
                 firebaseDataStoreFactoryComplaint = new FirebaseDataStoreFactory<>();
@@ -166,13 +166,19 @@ public class ListFragment extends BaseFragment implements FirebaseDataStoreFacto
                 this.complaintList.add(complaint);
                 notifyItemInserted(this.complaintList.size() - 1);
             } else {
+                boolean complaintMatched = false;
                 for (int i = 0; i < this.complaintList.size(); i++) {
                     Complaint complaint1 = this.complaintList.get(i);
                     if (complaint.getComplaintId().equals(complaint1.getComplaintId())) {
                         this.complaintList.set(i, complaint);
                         notifyItemChanged(i);
+                        complaintMatched = true;
                         break;
                     }
+                }
+                if (!complaintMatched) {
+                    this.complaintList.add(complaint);
+                    notifyItemInserted(this.complaintList.size() - 1);
                 }
             }
         }

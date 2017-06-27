@@ -12,11 +12,10 @@ import android.widget.Toast;
 
 import admin.complaintchef.R;
 import admin.complaintchef.core.MyApplication;
-import admin.complaintchef.services.LocationTrackerService;
 import common.complaintcheflib.model.User;
 import common.complaintcheflib.net.Login;
-import common.complaintcheflib.view.BaseAppCompatActivity;
 import common.complaintcheflib.util.Sessions;
+import common.complaintcheflib.view.BaseAppCompatActivity;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -39,7 +38,6 @@ public class LoginActivity extends BaseAppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        startService(new Intent(this, LocationTrackerService.class));
         nameET = (EditText) findViewById(R.id.et_name);
         phoneET = (EditText) findViewById(R.id.et_phone);
         loginB = (AppCompatButton) findViewById(R.id.b_login);
@@ -56,16 +54,25 @@ public class LoginActivity extends BaseAppCompatActivity {
         });
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (Sessions.loadUsername(this) != null) {
+            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            finish();
+        }
+    }
+
     private void onLoginClicked() {
         boolean validated = true;
         String phone = phoneET.getText().toString();
         if (phone.isEmpty()) {
             phoneET.setError("Enter Phone No.");
             validated = false;
-        } else if (phone.length() != 10) {
+        } /*else if (phone.length() != 10) {
             phoneET.setError("Enter Valid Phone No.");
             validated = false;
-        }
+        }*/
         String name = nameET.getText().toString();
         if (name.isEmpty()) {
             nameET.setError("Enter Name");
@@ -103,7 +110,7 @@ public class LoginActivity extends BaseAppCompatActivity {
                 Sessions.setToken(LoginActivity.this, token);
                 startActivity(new Intent(LoginActivity.this, MainActivity.class));
                 Sessions.setUsername(LoginActivity.this, user.getUid());
-
+                finish();
             }
 
             @Override

@@ -1,11 +1,8 @@
 package common.complaintcheflib.util;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.Geofence;
@@ -36,7 +33,7 @@ public class LocationUtils {
         return createLocationRequest(INTERVAL);
     }
 
-    public static GeofencingRequest createGeofencingRequest(Location location){
+    public static GeofencingRequest createGeofencingRequest(Location location) {
         return new GeofencingRequest.Builder().addGeofence(new Geofence.Builder()
                 .setRequestId(String.valueOf(System.currentTimeMillis()))
                 .setCircularRegion(location.getLatitude(), location.getLongitude(), GEOFENCE_RADIUS)
@@ -45,12 +42,9 @@ public class LocationUtils {
 
     }
 
-    public static void getCurrentLocation(Context context, final LocationReceivedCallback locationReceivedCallback){
+    public static void getCurrentLocation(Context context, final LocationReceivedCallback locationReceivedCallback) throws SecurityException {
         if (context == null || locationReceivedCallback == null)
             return;
-        if (!checkPermission(context)) {
-            return;
-        }
         FusedLocationProviderClient fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
         fusedLocationProviderClient.getLastLocation().addOnSuccessListener(ThreadExecutor.get(), new OnSuccessListener<Location>() {
             @Override
@@ -62,10 +56,5 @@ public class LocationUtils {
 
     public interface LocationReceivedCallback {
         void onLocationReceived(@Nullable Location location);
-    }
-
-
-    public static boolean checkPermission(Context context){
-        return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 }

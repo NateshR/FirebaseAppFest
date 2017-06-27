@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatButton;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -16,6 +17,11 @@ import common.complaintcheflib.model.Category;
 import common.complaintcheflib.model.Complaint;
 import common.complaintcheflib.util.LocationUtils;
 import common.complaintcheflib.util.Sessions;
+import common.complaintcheflib.util.permissions.Permission;
+import common.complaintcheflib.util.permissions.PermissionDeniedCallback;
+import common.complaintcheflib.util.permissions.PermissionManager;
+import common.complaintcheflib.util.permissions.PermissionTask;
+import common.complaintcheflib.view.BaseAppCompatActivity;
 import user.complaintchef.R;
 
 /**
@@ -38,6 +44,7 @@ public class ComplaintFormDialog extends Dialog {
         detailsET = (EditText) findViewById(R.id.et_details);
         submitB = (AppCompatButton) findViewById(R.id.b_submit);
         this.category = category;
+        setCanceledOnTouchOutside(false);
         submitB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -68,15 +75,27 @@ public class ComplaintFormDialog extends Dialog {
     }
 
     private void registerComplaint(final String phone, final String details) {
-        LocationUtils.getCurrentLocation(this.context, new LocationUtils.LocationReceivedCallback() {
+        PermissionManager.performTaskWithPermission((BaseAppCompatActivity) context, new PermissionTask() {
             @Override
-            public void onLocationReceived(@Nullable Location location) {
-                //Send details now
-                String complaintId = "-" + System.currentTimeMillis();
-                getmDatabaseReference(complaintId).setValue(new Complaint(complaintId, category.getName(), details, Sessions.loadUsername(ComplaintFormDialog.this.context), category.getId(), location.getLatitude(), location.getLongitude(), phone));
+            public void doTask() {
+                LocationUtils.getCurrentLocation(ComplaintFormDialog.this.context, new LocationUtils.LocationReceivedCallback() {
+                    @Override
+                    public void onLocationReceived(@Nullable Location location) {
+                        //Send details now
+                        if (location == null) return;
+                        String complaintId = "-" + System.currentTimeMillis();
+                        getmDatabaseReference(complaintId).setValue(new Complaint(complaintId, category.getName(), details, Sessions.loadUsername(ComplaintFormDialog.this.context), category.getId(), location.getLatitude(), location.getLongitude(), phone));
+                    }
+                });
+                dismiss();
+            }
+        }, Permission.LOCATION(), new PermissionDeniedCallback() {
+            @Override
+            public void onDeny() {
+                Toast.makeText(ComplaintFormDialog.this.context, "Please make sure you location is swtiched on.", Toast.LENGTH_LONG).show();
             }
         });
-        dismiss();
+
     }
 
     private DatabaseReference getmDatabaseReference(String complaintId) {

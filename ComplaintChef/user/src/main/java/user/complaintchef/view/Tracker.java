@@ -7,10 +7,13 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
+import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.util.Log;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.Interpolator;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -20,6 +23,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.database.DatabaseReference;
@@ -27,7 +31,6 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import org.json.JSONObject;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,8 +38,8 @@ import java.util.List;
 import common.complaintcheflib.firebase.FirebaseDataStoreFactory;
 import common.complaintcheflib.model.User;
 import common.complaintcheflib.net.Directions;
-import common.complaintcheflib.view.BaseAppCompatActivity;
 import common.complaintcheflib.util.ThreadExecutor;
+import common.complaintcheflib.view.BaseAppCompatActivity;
 import common.complaintcheflib.view.ListFragment;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -52,15 +55,15 @@ import user.complaintchef.core.PolyParser;
 public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback, FirebaseDataStoreFactory.DataListCallBack<User> {
 
     public static final String KEY_ADMIN_ID = "KEY_ADMIN_ID", KEY_USER_LAT = "user_lat", KEY_USER_LONG = "user_long", KEY_OFFICER_LAT = "officer_lat", KEY_OFFICER_LONG = "officer_long";
-    private static final long TRIGGER_DELAY_IN_MS = 1000;
-    private static int TRIGGER_FETCH = 101;
+    boolean tIsLessThan1 = true;
     private SupportMapFragment mapFragment;
     private ThreadExecutor threadExecutor;
     private GoogleMap myMap;
-    private WeakRefHandler weakRefHandler;
-    private Bundle gotBundle;
     private FirebaseDataStoreFactory<User> firebaseDataStoreFactory;
-
+    private ArrayList<LatLng> previousPointsList = null;
+    private LatLng user, previousOfficer;
+    private boolean markAdded = false;
+    private Marker officerMaker;
 
     public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
         Drawable drawable = ContextCompat.getDrawable(context, drawableId);
@@ -82,13 +85,17 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
         setContentView(R.layout.tracker);
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         threadExecutor = ThreadExecutor.get();
-        weakRefHandler = new WeakRefHandler(this);
-        gotBundle = getIntent().getExtras();
+        Bundle gotBundle = getIntent().getExtras();
+        try {
+            user = new LatLng(gotBundle.getDouble(KEY_USER_LAT), gotBundle.getDouble(KEY_USER_LONG));
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Something went wrong!", Toast.LENGTH_SHORT).show();
+        }
         firebaseDataStoreFactory = new FirebaseDataStoreFactory<>();
         firebaseDataStoreFactory.data(FirebaseDataStoreFactory.ListenerType.NODE, User.class, getmDatabaseReference(gotBundle.getString(KEY_ADMIN_ID)), this);
         mapFragment.getMapAsync(this);
     }
-
 
     private DatabaseReference getmDatabaseReference(String adminId) {
         DatabaseReference mDatabaseReference = FirebaseDatabase.getInstance().getReference().child(ListFragment.KEY_USER).child(adminId);
@@ -99,7 +106,6 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         myMap = googleMap;
-        initiateHandler();
     }
 
     @Override
@@ -109,45 +115,49 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
 
     @Override
     public void onSingleDataChange(User data) {
-        gotBundle.putDouble(KEY_OFFICER_LAT, data.getLastLocationLat());
-        gotBundle.putDouble(KEY_OFFICER_LONG, data.getLastLocationLong());
-        initiateHandler();
+        LatLng currentOfficer = new LatLng(data.getLastLocationLat(), data.getLastLocationLong());
+        if (!markAdded)
+            mark(currentOfficer);
+        else {
+            route(currentOfficer);
+            if (previousOfficer != null)
+                moveOfficerToNewPosition(previousOfficer, currentOfficer);
+            previousOfficer = new LatLng(data.getLastLocationLat(), data.getLastLocationLong());
+        }
+
     }
 
     @Override
     public void onCancelled() {
-        Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT);
+        Toast.makeText(this, "Something went wrong", Toast.LENGTH_SHORT).show();
     }
 
-    private void initiateHandler() {
-        Message handlerMessage = new Message();
-        handlerMessage.what = TRIGGER_FETCH;
-        handlerMessage.setData(gotBundle);
-        weakRefHandler.removeMessages(TRIGGER_FETCH);
-        weakRefHandler.sendMessageDelayed(handlerMessage, TRIGGER_DELAY_IN_MS);
-    }
+    private void mark(final LatLng officer) {
+        BitmapDescriptor userIcon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(this, R.drawable.ic_location_pointer));
+        BitmapDescriptor officerIcon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(this, R.drawable.ic_user));
 
-    private void markAndRoute(LatLng user, LatLng officer) {
-        BitmapDescriptor userIcon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(this, R.drawable.ic_user));
-        BitmapDescriptor officerIcon = BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(this, R.drawable.ic_location_pointer));
-        if (user != null) {
-            MarkerOptions userMarker = new MarkerOptions().position(user)
-                    .title("Complaint Location")
-                    .icon(userIcon);
-            myMap.addMarker(userMarker);
-        }
+        MarkerOptions userMarker = new MarkerOptions().position(user)
+                .title("Complaint Location")
+                .icon(userIcon);
+        myMap.addMarker(userMarker);
+
         if (officer != null) {
+            markAdded = true;
             MarkerOptions officerMarker = new MarkerOptions().position(officer)
                     .title("Officer Location")
                     .icon(officerIcon);
-            myMap.addMarker(officerMarker);
-            myMap.animateCamera(CameraUpdateFactory.newLatLng(officer));
+            officerMaker = myMap.addMarker(officerMarker);
+            myMap.animateCamera(CameraUpdateFactory.newLatLngZoom(officer, 14));
+
+            route(officer);
         }
-        if (user == null && officer == null) return;
+    }
+
+    private void route(final LatLng officer) {
         String origin = officer.latitude + "," + officer.longitude;
         String destination = user.latitude + "," + user.longitude;
         String mode = "driving";
-        Call<String> call = Directions.findRoute(MyApplication.getAPIService(), origin, destination, mode, getString(R.string.google_api_key));
+        Call<String> call = Directions.findRoute(MyApplication.getAPIService(), origin, destination, mode, getString(R.string.google_api_key_manual));
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
@@ -156,33 +166,44 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-                Toast.makeText(Tracker.this, "Something went wrong!", Toast.LENGTH_SHORT);
+                Toast.makeText(Tracker.this, "Something went wrong!", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private static final class WeakRefHandler extends Handler {
-        private final WeakReference<Tracker> trackerWeakReference;
+    private void moveOfficerToNewPosition(final LatLng officer, final LatLng updatedOfficer) {
+        final Handler handler = new Handler();
+        final long start = SystemClock.uptimeMillis();
+        final Interpolator interpolator = new AccelerateDecelerateInterpolator();
+        final float durationInMs = 5000;
+        final boolean hideMarker = false;
+        handler.post(new Runnable() {
+            long elapsed;
+            float t;
 
-        WeakRefHandler(Tracker tracker) {
-            trackerWeakReference = new WeakReference<>(tracker);
-        }
+            @Override
+            public void run() {
+                // Calculate progress using interpolator
+                Log.d("Tracker", "Start - " + start);
+                elapsed = SystemClock.uptimeMillis() - start;
+                Log.d("Tracker", "Elapsed - " + elapsed);
+                Log.d("Tracker", "divide - " + elapsed
+                        / durationInMs);
+                t = interpolator.getInterpolation((float) elapsed
+                        / durationInMs);
+                Log.d("Tracker", "T - " + t);
+                LatLng currentPosition = new LatLng(
+                        officer.latitude * (1 - t) + updatedOfficer.latitude * t,
+                        officer.longitude * (1 - t) + updatedOfficer.longitude * t);
+                Log.d("Tracker", "Pos - " + currentPosition.latitude + "," + currentPosition.longitude);
+                officerMaker.setPosition(currentPosition);
 
-        @Override
-        public void handleMessage(Message msg) {
-            if (msg.what == TRIGGER_FETCH && msg.getData() != null) {
-                Tracker tracker = trackerWeakReference.get();
-                Bundle receivedBundle = msg.getData();
-                LatLng userLatLng = null, officerLatLng = null;
-                if (receivedBundle.getDouble(KEY_USER_LAT) != 0.0d && receivedBundle.getDouble(KEY_USER_LONG) != 0.0d)
-                    userLatLng = new LatLng(receivedBundle.getDouble(KEY_USER_LAT), receivedBundle.getDouble(KEY_USER_LONG));
-                if (receivedBundle.getDouble(KEY_OFFICER_LAT) != 0.0d && receivedBundle.getDouble(KEY_OFFICER_LONG) != 0.0d)
-                    officerLatLng = new LatLng(receivedBundle.getDouble(KEY_OFFICER_LAT), receivedBundle.getDouble(KEY_OFFICER_LONG));
-                if (tracker != null) {
-                    tracker.markAndRoute(userLatLng, officerLatLng);
-                }
+                // Repeat till progress is complete.
+                if (t < 1)
+                    // Post again 16ms later.
+                    handler.postDelayed(this, 16);
             }
-        }
+        });
     }
 
     private class ParserTask implements Runnable {
@@ -206,10 +227,9 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
             Tracker.this.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    ArrayList points = null;
                     PolylineOptions lineOptions = null;
                     for (int i = 0; i < routes.size(); i++) {
-                        points = new ArrayList();
+                        previousPointsList = new ArrayList();
                         lineOptions = new PolylineOptions();
 
                         List<HashMap<String, String>> path = routes.get(i);
@@ -221,17 +241,18 @@ public class Tracker extends BaseAppCompatActivity implements OnMapReadyCallback
                             double lng = Double.parseDouble(point.get("lng"));
                             LatLng position = new LatLng(lat, lng);
 
-                            points.add(position);
+                            previousPointsList.add(position);
                         }
 
-                        lineOptions.addAll(points);
+                        lineOptions.addAll(previousPointsList);
                         lineOptions.width(8);
                         lineOptions.color(ContextCompat.getColor(Tracker.this, R.color.colorAccent));
                         lineOptions.geodesic(true);
 
                     }
-                    if (lineOptions != null)
+                    if (lineOptions != null) {
                         myMap.addPolyline(lineOptions);
+                    }
                 }
             });
         }

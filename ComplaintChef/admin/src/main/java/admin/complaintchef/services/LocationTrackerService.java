@@ -1,18 +1,15 @@
 package admin.complaintchef.services;
 
-import android.Manifest;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -57,13 +54,10 @@ public class LocationTrackerService extends Service implements OnCompleteListene
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(Intent intent, int flags, int startId) throws SecurityException {
         instanceRunning = true;
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         geofencingClient = LocationServices.getGeofencingClient(this);
-        if (!checkPermission()) {
-            return super.onStartCommand(intent, flags, startId);
-        }
         geofenceExitReceiver = new GeofenceExitReceiver();
         registerReceiver(geofenceExitReceiver, new IntentFilter(GeofenceTransitionsIntentService.ACTION));
 
@@ -96,10 +90,7 @@ public class LocationTrackerService extends Service implements OnCompleteListene
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    private void setUpGeoFence(Location location) {
-        if (!checkPermission()) {
-            return;
-        }
+    private void setUpGeoFence(Location location) throws SecurityException {
         geofencingClient.addGeofences(LocationUtils.createGeofencingRequest(location), getGeofencePendingIntent())
                 .addOnCompleteListener(this);
     }
@@ -132,10 +123,6 @@ public class LocationTrackerService extends Service implements OnCompleteListene
                 saveLocation(location);
             }
         });
-    }
-
-    private boolean checkPermission() {
-        return ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 
     private class GeofenceExitReceiver extends BroadcastReceiver {

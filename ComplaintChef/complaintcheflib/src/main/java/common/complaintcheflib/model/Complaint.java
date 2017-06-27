@@ -21,7 +21,7 @@ public class Complaint {
     @PropertyName("user")
     public String user;
     @PropertyName("category")
-    public String category;
+    public Integer category;
     @PropertyName("locationLat")
     public Double locationLat;
     @PropertyName("locationLong")
@@ -33,7 +33,7 @@ public class Complaint {
     }
 
     //When user registers a complaint
-    public Complaint(String complaintId, String title, String description, String user, String category, Double locationLat, Double locationLong,String mobileNo) {
+    public Complaint(String complaintId, String title, String description, String user, Integer category, Double locationLat, Double locationLong, String mobileNo) {
         this.complaintId = complaintId;
         this.title = title;
         this.description = description;
@@ -92,11 +92,11 @@ public class Complaint {
         this.user = user;
     }
 
-    public String getCategory() {
+    public Integer getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(Integer category) {
         this.category = category;
     }
 

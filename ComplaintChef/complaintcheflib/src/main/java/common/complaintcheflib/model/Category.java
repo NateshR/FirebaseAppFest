@@ -8,7 +8,7 @@ import com.google.firebase.database.PropertyName;
 
 public class Category {
     @PropertyName("id")
-    private String id;
+    private Integer id;
     @PropertyName("name")
     private String name;
 
@@ -16,11 +16,11 @@ public class Category {
     }
 
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

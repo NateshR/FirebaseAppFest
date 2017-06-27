@@ -67,7 +67,7 @@ public class MainActivity extends BaseAppCompatActivity implements FirebaseDataS
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_history:
-                startActivity(new Intent(this, ListFragment.class));
+                startActivity(new Intent(this, ListActivity.class));
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -102,7 +102,7 @@ public class MainActivity extends BaseAppCompatActivity implements FirebaseDataS
 
     private class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
 
-        Map<String, Integer> iconsMap = new HashMap<>();
+        Map<Integer, Integer> iconsMap = new HashMap<>();
         private List<Category> categoryList;
 
         public CategoryAdapter() {
